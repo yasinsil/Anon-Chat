@@ -1,0 +1,264 @@
+<html>
+<head>
+    <title>Anedak Anon Chat</title>
+	<meta name="description" content="Free anonymous chat engraved on the Kadena network">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+	<script src="https://kit.fontawesome.com/6c30d9724b.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <link rel="icon" href="img/favicon.ico">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pact-lang-api@4.1.2/pact-lang-api-global.min.js"></script>
+
+    <script>
+
+    const host = `https://api.chainweb.com/chainweb/0.0/mainnet01/chain/1/pact`;
+    var creationTime = () => Math.round((new Date).getTime()/1000)-15;
+
+    const getLastTen = async (server) => {
+      const res = await Pact.fetch.local({
+        pactCode: `(free.anon-chat.query-all)`,
+        meta: Pact.lang.mkMeta("", "", 0.0001, 6000, creationTime(), 600)
+      }, server)
+      const all = res.result.data
+      all.sort((a, b) => a.bh.int - b.bh.int);
+      const lastTen = all.slice(0)
+      return lastTen
+    }
+
+    const createFeed = (idx, user, href) => {
+      var feedItem = document.createElement("div");
+      feedItem.className = "event";
+      feedItem.setAttribute("id", "feed-item-"+idx)
+      feedItem.innerHTML =
+      `<div class="label">
+        <i class="mask" id="${idx}-icon"></i>
+      </div>
+      <div class="content">
+        <div class="summary">
+          Anon said: <a class="user" href="${href}" item="user-name-${idx}" target="_blank">
+          ${user}
+          </a>
+        </div>
+      </div>`
+      return feedItem;
+    }
+
+    const checkText = (text) => {
+      const profs = [
+      ]
+      if (text.length > 256 || profs.includes(text) || text === "" || text.length < 9) {
+        return true
+      } else {
+        return false
+      }
+    }
+
+    const addFeed = async () => {
+      let colors = ["orange", "yellow", "olive", "green", "teal", "blue", "violet", "purple", "pink", "brown", "grey"];
+      let firstMems = [
+      ]
+      firstMems.map((x, i) => {
+        let feed = createFeed(i, x.message, `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh}` );
+        document.getElementById("feed-container").appendChild(feed)
+        if (i===0){
+          document.getElementById(`${i}-icon`).classList.add("black")
+        } else {
+          document.getElementById(`${i}-icon`).classList.add(colors[Math.floor(Math.random()*colors.length)])
+        }
+      })
+      //separate first 10 from last 10
+      let line = document.createElement("div");
+      line.classList = "ui section divider";
+      document.getElementById("feed-container").appendChild(line)
+      const lastTen = await getLastTen(host);
+      lastTen.map((x, i) => {
+        i = i + 1
+        let feed = createFeed(i, x.message, `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh.int}` );
+        document.getElementById("feed-container").appendChild(feed)
+        if (i===0){
+          document.getElementById(`${i}-icon`).classList.add("black")
+        } else {
+          document.getElementById(`${i}-icon`).classList.add(colors[Math.floor(Math.random()*colors.length)])
+        }
+      })
+    }
+
+    window.addEventListener('load', async function (event) {
+      await addFeed();
+      document.getElementById("pay-gas").addEventListener('click', async function () {
+        let user = document.getElementById("user-input").value;
+        if (checkText(user)) {
+          alert("Please keep messages between 8 and 256 characters.")
+        } else {
+          payGas(user);
+        }
+      }, false);
+    }, false);
+
+    const payGas = async (user) => {
+        try {
+          const kp = Pact.crypto.genKeyPair();
+          const tx = await Pact.fetch.send(
+          {
+            networkId: "mainnet01",
+            pactCode: `(free.anon-chat.chat ${JSON.stringify(user)})`,
+            keyPairs: [
+              {
+                publicKey: kp.publicKey,
+                secretKey: kp.secretKey,
+                clist: [
+                  //capability to use gas station
+                  {
+                    name: `free.anon-chat-gas-station.GAS_PAYER`,
+                    args: ["hi", {int: 1}, 1.0]
+                  }
+                ]
+              }],
+            meta: Pact.lang.mkMeta
+            (
+              "chat-gas-payer",
+              "1",
+              0.0000000001,
+              10000,
+              creationTime(),
+              28800
+            )
+          }, host);
+          document.getElementById("requestKey").classList.remove("hidden")
+          document.getElementById("header-text").textContent = "Transaction sent to Kadena Mainnet";
+          document.getElementById("spinner").classList.add("active")
+          document.getElementById("content-text").textContent = "Please wait, this box will update once the transaction is confirmed in about 30 seconds."
+          document.getElementById("header-two-text").textContent = "Curious how interacting with a blockchain can be so simple?";
+          document.getElementById("content-two-text").textContent = "With most blockchains you need an account, a wallet, and some crypto in order to interact with them. Kadena's solution to this onboarding problem is gas stations; an account that exists only to fund gas payments on behalf of other users."
+          document.getElementById("content-three-text").textContent = "Thanks to gas stations, interacting with Kadena can be as simple as filling out a web form."
+          try {
+            let hello = await Pact.fetch.listen({"listen": tx.requestKeys[0]}, host);
+            if (hello.result.status !== "success"){
+              document.getElementById("header-text").textContent = "ERROR! INVESTIGATE BELOW";
+              document.getElementById("content-text").textContent = JSON.stringify(hello);
+              document.getElementById("spinner").classList.remove("active")
+              document.getElementById("header-two-text").textContent = "";
+              document.getElementById("content-two-text").textContent = "";
+              document.getElementById("content-three-text").textContent = "";
+              document.getElementById("link-text").textContent = "Block Exporer Link";
+              document.getElementById("link-text").href = "https://explorer.chainweb.com/mainnet/tx/" + tx.requestKeys[0];
+            }
+            else {
+              document.getElementById("header-text").textContent = "Success!";
+              document.getElementById("content-text").textContent = JSON.stringify(hello.result.data) + " has been added to the Memory Wall.";
+              document.getElementById("spinner").classList.remove("active")
+              document.getElementById("header-two-text").textContent = "";
+              document.getElementById("content-two-text").textContent = "";
+              document.getElementById("content-three-text").textContent = "";
+              document.getElementById("link-text").textContent = "View transaction in Block Explorer";
+              document.getElementById("link-text").href = "https://explorer.chainweb.com/mainnet/tx/" + tx.requestKeys[0];
+            }
+          } catch(e){
+            console.log(e)
+            document.getElementById("header-text").textContent = "Waiting Timed out, but your tx was sent. Look up Below";
+            document.getElementById("content-text").textContent = tx.requestKeys[0];
+            document.getElementById("spinner").classList.remove("active")
+            document.getElementById("header-two-text").textContent = "";
+            document.getElementById("content-two-text").textContent = "";
+            document.getElementById("content-three-text").textContent = "";
+            document.getElementById("link-text").textContent = "View transaction in Block Explorer";
+            document.getElementById("link-text").href = "https://explorer.chainweb.com/mainnet/tx/" + tx.requestKeys[0];
+          }
+        } catch(e){
+          document.getElementById("requestKey").classList.remove("hidden")
+          document.getElementById("header-text").textContent = "Transaction was Rejected";
+          document.getElementById("spinner").classList.remove("active")
+          document.getElementById("header-two-text").textContent = "";
+          document.getElementById("content-two-text").textContent = "";
+          document.getElementById("content-three-text").textContent = "";
+          document.getElementById("content-text").textContent = "Transaction was not sent to Blockchain. Check your keys or metadata"
+        }
+    }
+
+    const openModule = async function(){
+      try {
+        const response = await Pact.fetch.local({
+            pactCode: `(describe-module "chat-anon")`,
+            meta: Pact.lang.mkMeta("", "", 0.0001, 6000, creationTime(), 600)
+          }, host)
+        const result = response.result;
+        let text = result.data.code
+        document.getElementById("module-text").classList.add("active")
+        document.getElementById("module-name").innerText = result.data.message;
+        document.getElementById("module-code").innerText = text;
+      } catch(e){
+        console.log(e)
+      }
+    }
+
+    const closeModule = () => {
+      document.getElementById("module-text").classList.remove("active")
+    }
+
+    </script>
+</head>
+<body>
+    <div id="main">
+      <div id=anon-chat-container>
+        <div id="module-text" class="ui modal" >
+          <i id="module-close" class="close icon" onClick="closeModule()"></i>
+          <div class="header" id="module-name"></div>
+          <p class="content" id="module-code"></p>
+        </div>
+      </div>
+      <div class="ui raised very padded text container segment" id="container">
+        <h2 class="ui header" >Welcome to the Anonymous Kadena chat</h2>
+        <h3>Send your message anonymously through a gas station</h3>
+        <div class="ui input" id="input">
+          <input type="text" id="user-input">
+          <button class="ui black right button" id="pay-gas">
+            Send
+          </button>
+        </div>
+        <div class="ui message hidden" id="requestKey">
+          <div id="header-text" class="header"></div>
+          <p id="content-text"></p>
+          <div id="spinner" class="ui centered inline loader"></div>
+          <div id="header-two-text" class="header"></div>
+          <p id="content-two-text"></p>
+          <p id="content-three-text"></p>
+          <a href="" id="link-text"></a>
+        </div>
+        <div class="ui large feed" id="feed-container">
+          <div class="event" id="feed-item">
+           </div>
+        </div>
+      </div>
+  </div>
+</body>
+<style>
+
+container{
+  margin-top: 50px;
+}
+input{
+   margin-top: 5px;
+}
+#spinner{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+i.close.icon::before {
+  cursor: pointer;
+  position: absolute;
+  font-size: 20px;
+  color: black;
+  left: -33px;
+  top: 48px;
+}
+anon-chat-container{
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+#module-text{
+  margin-top: 30px;
+}
+</style>
+</html>
