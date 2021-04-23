@@ -53,12 +53,26 @@
       }
     }
 
+    var tagsToReplace = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;'
+    };
+
+    function replaceTag(tag) {
+    return tagsToReplace[tag] || tag;
+    }
+
+    function safe_tags_replace(str) {
+    return str.replace(/[&<>]/g, replaceTag);
+    }
+    
     const addFeed = async () => {
       let colors = ["orange", "yellow", "olive", "green", "teal", "blue", "violet", "purple", "pink", "brown", "grey"];
       let firstMems = [
       ]
       firstMems.map((x, i) => {
-        let feed = createFeed(i, x.message, `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh}` );
+        let feed = createFeed(i, safe_tags_replace(x.message), `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh}` );
         document.getElementById("feed-container").appendChild(feed)
         if (i===0){
           document.getElementById(`${i}-icon`).classList.add("black")
@@ -73,7 +87,7 @@
       const lastTen = await getLastTen(host);
       lastTen.map((x, i) => {
         i = i + 1
-        let feed = createFeed(i, x.message, `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh.int}` );
+        let feed = createFeed(i, safe_tags_replace(x.message), `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh.int}` );
         document.getElementById("feed-container").appendChild(feed)
         if (i===0){
           document.getElementById(`${i}-icon`).classList.add("black")
