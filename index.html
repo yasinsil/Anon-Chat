@@ -46,7 +46,7 @@
     const checkText = (text) => {
       const profs = [
       ]
-      if (text.length > 256 || profs.includes(text) || text === "" || text.length < 9) {
+      if (text.length > 1024 || profs.includes(text) || text === "" || text.length < 9) {
         return true
       } else {
         return false
@@ -102,7 +102,7 @@
       document.getElementById("pay-gas").addEventListener('click', async function () {
         let user = document.getElementById("user-input").value;
         if (checkText(user)) {
-          alert("Please keep messages between 8 and 256 characters.")
+          alert("Please keep messages between 8 and 1024 characters.")
         } else {
           payGas(user);
         }
