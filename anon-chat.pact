@@ -21,6 +21,7 @@
   "Designed for /send calls. Chat with the world!"
   (enforce (!= message "") "Message cannot be empty")
   (enforce (> (length message) 8) "Message is too short")
+  (enforce (< (length message) 1024) "Message is too long")
   (write history message
     {"message": message, "bh": (at "block-height" (chain-data))}
   )
