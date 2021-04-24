@@ -9,6 +9,7 @@
 
   (implements gas-payer-v1)
   (use coin)
+  (use util.guards1)
 
   (defschema gas
     balance:decimal
@@ -24,6 +25,8 @@
     (enforce (= "exec" (at "tx-type" (read-msg))) "Inside an exec")
     (enforce (= 1 (length (at "exec-code" (read-msg)))) "Tx of only one pact function")
     (enforce (= "(free.anon-chat." (take 16 (at 0 (at "exec-code" (read-msg))))) "only anon-chat token smart contract")
+    (enforce-below-or-at-gas-price 0.000000000001)
+    (enforce-below-or-at-gas-limit 800)
     (compose-capability (ALLOW_GAS))
   )
 
