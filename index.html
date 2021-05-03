@@ -38,6 +38,18 @@
       .ui.feed>.event:target {
         background-color: #eaf3ff;
       }
+
+      img.inline-image {
+        word-wrap: break-word;
+        max-width: 90%;
+        max-height: 20em;
+        border:1px solid black;
+      }
+
+      img.inline-image.spoiler {
+        border: 1px;
+        filter: blur(44px);
+      };
     </style>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
@@ -142,14 +154,30 @@
       str = safe_tags_replace(str);
       str = anchorme({
         input: str,
-        extensions: [
-            // an extension for mentions
-            {
-                test: /@([\d_])+/gi,
+        options: {
+          attributes: {
+            target: "_blank"
+          },
+          exclude: true,
+          extensions: [
+              // an extension for mentions
+              {
+                  test: /@([\d_])+/gi,
+                  transform: string =>
+                      `<a href="#feed-item-${escape(string.substr(1))}">${string}</a>`
+              }
+          ],
+          specialTransform: [{
+                test: /^https:\/\/i\.imgur\.com/,
                 transform: string =>
-                    `<a href="#feed-item-${string.substr(1)}">${string}</a>`
-            }
-        ]
+                      `<div><a href="${string}" target="_blank"><img src="${string}" class="inline-image"/></a></div>`
+          },
+          {
+                test: /./,
+                transform: string =>
+                      `<a href="${string}" target="_blank">${string}</a>`
+          }]
+        }
       });
       return str;
     }
