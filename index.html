@@ -47,7 +47,6 @@
       }
 
       img.inline-image.spoiler {
-        border: 1px;
         filter: blur(44px);
       };
     </style>
@@ -154,19 +153,19 @@
       str = safe_tags_replace(str);
       str = anchorme({
         input: str,
+        extensions: [
+            // an extension for mentions
+            {
+                test: /@([\d_])+/gi,
+                transform: string =>
+                    `<a href="#feed-item-${escape(string.substr(1))}">${string}</a>`
+            }
+        ],
         options: {
           attributes: {
             target: "_blank"
           },
           exclude: true,
-          extensions: [
-              // an extension for mentions
-              {
-                  test: /@([\d_])+/gi,
-                  transform: string =>
-                      `<a href="#feed-item-${escape(string.substr(1))}">${string}</a>`
-              }
-          ],
           specialTransform: [{
                 test: /^https:\/\/i\.imgur\.com/,
                 transform: string =>
@@ -190,6 +189,11 @@
       line.classList = "ui section divider";
       document.getElementById("feed-container").appendChild(line)
       const lastTen = await getLastTen(host);
+
+      lastTen.push({
+        bh: {int:13},
+        message: "@1560592_2"
+      })
 
       blockCounts = {};
 
