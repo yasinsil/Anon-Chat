@@ -4,6 +4,42 @@
 	  <meta name="description" content="Free anonymous chat engraved on the Kadena network">
     <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
 	  <script src="https://kit.fontawesome.com/6c30d9724b.js" crossorigin="anonymous"></script>
+
+    <style>
+
+      container{
+        margin-top: 50px;
+      }
+      input{
+         margin-top: 5px;
+         width: 500px;
+      }
+      #spinner{
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      i.close.icon::before {
+        cursor: pointer;
+        position: absolute;
+        font-size: 20px;
+        color: black;
+        left: -33px;
+        top: 48px;
+      }
+      anon-chat-container{
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        text-align: center;
+      }
+      #module-text{
+        margin-top: 30px;
+      }
+      .ui.feed>.event:target {
+        background-color: #eaf3ff;
+      }
+    </style>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
     <link rel="icon" href="img/favicon.ico">
     <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
@@ -27,13 +63,24 @@
       return lastTen
     }
 
-    const createFeed = (idx, user, href) => {
+    function citeBlock(blockId) {
+      const textNode = document.getElementById('user-input');
+      const text = textNode.value;
+
+      if (text.length == 0) textNode.value += '@' + blockId + ' ';
+      else if (text[text.length - 1] == ' ') textNode.value += '@' + blockId + ' ';
+      else  textNode.value += ' @' + blockId + ' ';
+
+      updateCharCount(textNode);
+    }
+
+    const createFeedItem = (blockId, messageId, user, href) => {
       var feedItem = document.createElement("div");
       feedItem.className = "event";
-      feedItem.setAttribute("id", "feed-item-"+idx)
+      feedItem.setAttribute("id", "feed-item-"+messageId);
       feedItem.innerHTML =
       `<div class="label">
-        <i class="mask" id="${idx}-icon">Anon <a class="user" href="${href}" item="user-name-${idx}" target="_blank">said</a>:</i>
+        <a href="javascript:citeBlock('${messageId}')" title="Cite message">↩</button>&nbsp;<a href="${href}" target="_blank" title="Open block ${blockId} in explorer">🧱</a>
       </div>
       <div class="content">
           ${user}
@@ -93,7 +140,17 @@
 
     function preprocessMessages(str) {
       str = safe_tags_replace(str);
-      str = anchorme(str);
+      str = anchorme({
+        input: str,
+        extensions: [
+            // an extension for mentions
+            {
+                test: /@([\d_])+/gi,
+                transform: string =>
+                    `<a href="#feed-item-${string.substr(1)}">${string}</a>`
+            }
+        ]
+      });
       return str;
     }
 
@@ -105,16 +162,16 @@
       line.classList = "ui section divider";
       document.getElementById("feed-container").appendChild(line)
       const lastTen = await getLastTen(host);
-      lastTen.map((x, i) => {
-        i = i + 1
-        let feed = createFeed(i, preprocessMessages(x.message), `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh.int}` );
-        document.getElementById("feed-container").appendChild(feed)
 
-        if (i === 0) {
-          document.getElementById(`${i}-icon`).classList.add("black")
-        } else {
-          document.getElementById(`${i}-icon`).classList.add(colors[Math.floor(Math.random()*colors.length)])
-        }
+      blockCounts = {};
+
+      lastTen.map((x, i) => {
+        if (blockCounts[x.bh.int] === undefined) {
+          blockCounts[x.bh.int] = 1;
+        } else blockCounts[x.bh.int] += 1;
+        const cnt = blockCounts[x.bh.int];
+        let feed = createFeedItem(x.bh.int, x.bh.int + '_' + cnt, preprocessMessages(x.message), `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh.int}` );
+        document.getElementById("feed-container").appendChild(feed);
       })
     }
 
@@ -272,37 +329,6 @@
       </div>
   </div>
 </body>
-<style>
-
-container{
-  margin-top: 50px;
-}
-input{
-   margin-top: 5px;
-   width: 500px;
-}
-#spinner{
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-i.close.icon::before {
-  cursor: pointer;
-  position: absolute;
-  font-size: 20px;
-  color: black;
-  left: -33px;
-  top: 48px;
-}
-anon-chat-container{
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  text-align: center;
-}
-#module-text{
-  margin-top: 30px;
-}
-</style>
 
   <script>
     updateCharCount(document.getElementById('user-input'));
