@@ -41,10 +41,36 @@
       return feedItem;
     }
 
+    const MaximumCharacterCount = 1023;
+    const MinimumCharacterCount = 9;
+
+    function updateCharCount (el) {
+      const count = el.value.length;
+
+      if (count > MaximumCharacterCount) {
+        el.value = el.value.substr(0, MaximumCharacterCount);
+      }
+
+      var msg = '';
+      if (count < MinimumCharacterCount) {
+        msg = 'Your message is too short.';
+      } else if (count < (MaximumCharacterCount - MinimumCharacterCount) / 2 + MinimumCharacterCount) {
+        msg = 'You are allowed lots more.';
+      } else {
+        const left = MaximumCharacterCount - count;
+        msg = 'You are allowed ' + left + ' more.';
+      }
+
+      document.getElementById('user-input-char-count').innerHTML = count;
+      document.getElementById('user-input-char-count-message').innerHTML = msg;
+
+      return true;
+    }
+
     const checkText = (text) => {
       const profs = [
       ]
-      if (text.length > 1024 || profs.includes(text) || text === "" || text.length < 9) {
+      if (text.length > MaximumCharacterCount || profs.includes(text) || text === "" || text.length < MinimumCharacterCount) {
         return true
       } else {
         return false
@@ -219,11 +245,17 @@
         <h2 class="ui header" >Welcome to the Anonymous Kadena chat</h2>
         <h3>Send your message anonymously through a gas station</h3>
         <div class="ui input" id="input">
-          <input type="text" id="user-input">
+          <input type="text" id="user-input" onkeyup="updateCharCount(this);">
           <button class="ui black right button" id="pay-gas">
             Send
           </button>
         </div>
+
+        <div class="ui">
+          <br>You've typed <span id="user-input-char-count">0</span> character(s).
+          <span id='user-input-char-count-message'>You are allowed lots more.</span>
+        </div>
+
         <div class="ui message hidden" id="requestKey">
           <div id="header-text" class="header"></div>
           <p id="content-text"></p>
@@ -271,4 +303,8 @@ anon-chat-container{
   margin-top: 30px;
 }
 </style>
+
+  <script>
+    updateCharCount(document.getElementById('user-input'));
+  </script>
 </html>
