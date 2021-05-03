@@ -1,18 +1,20 @@
 <html>
 <head>
     <title>Anedak Anon Chat</title>
-	<meta name="description" content="Free anonymous chat engraved on the Kadena network">
+	  <meta name="description" content="Free anonymous chat engraved on the Kadena network">
     <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
-	<script src="https://kit.fontawesome.com/6c30d9724b.js" crossorigin="anonymous"></script>
+	  <script src="https://kit.fontawesome.com/6c30d9724b.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
     <link rel="icon" href="img/favicon.ico">
     <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pact-lang-api@4.1.2/pact-lang-api-global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/anchorme@2.1.2/dist/browser/anchorme.min.js"></script>
 
     <script>
 
     const host = `https://api.chainweb.com/chainweb/0.0/mainnet01/chain/1/pact`;
-    var creationTime = () => Math.round((new Date).getTime()/1000)-15;
+
+    var creationTime = () => Math.round((new Date).getTime() / 1000) - 15;
 
     const getLastTen = async (server) => {
       const res = await Pact.fetch.local({
@@ -31,14 +33,10 @@
       feedItem.setAttribute("id", "feed-item-"+idx)
       feedItem.innerHTML =
       `<div class="label">
-        <i class="mask" id="${idx}-icon"></i>
+        <i class="mask" id="${idx}-icon">Anon <a class="user" href="${href}" item="user-name-${idx}" target="_blank">said</a>:</i>
       </div>
       <div class="content">
-        <div class="summary">
-          Anon said: <a class="user" href="${href}" item="user-name-${idx}" target="_blank">
           ${user}
-          </a>
-        </div>
       </div>`
       return feedItem;
     }
@@ -54,32 +52,28 @@
     }
 
     var tagsToReplace = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;'
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;'
     };
 
     function replaceTag(tag) {
-    return tagsToReplace[tag] || tag;
+      return tagsToReplace[tag] || tag;
     }
 
     function safe_tags_replace(str) {
-    return str.replace(/[&<>]/g, replaceTag);
+      return str.replace(/[&<>]/g, replaceTag);
     }
-    
+
+    function preprocessMessages(str) {
+      str = safe_tags_replace(str);
+      str = anchorme(str);
+      return str;
+    }
+
     const addFeed = async () => {
       let colors = ["orange", "yellow", "olive", "green", "teal", "blue", "violet", "purple", "pink", "brown", "grey"];
-      let firstMems = [
-      ]
-      firstMems.map((x, i) => {
-        let feed = createFeed(i, safe_tags_replace(x.message), `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh}` );
-        document.getElementById("feed-container").appendChild(feed)
-        if (i===0){
-          document.getElementById(`${i}-icon`).classList.add("black")
-        } else {
-          document.getElementById(`${i}-icon`).classList.add(colors[Math.floor(Math.random()*colors.length)])
-        }
-      })
+
       //separate first 10 from last 10
       let line = document.createElement("div");
       line.classList = "ui section divider";
@@ -87,9 +81,10 @@
       const lastTen = await getLastTen(host);
       lastTen.map((x, i) => {
         i = i + 1
-        let feed = createFeed(i, safe_tags_replace(x.message), `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh.int}` );
+        let feed = createFeed(i, preprocessMessages(x.message), `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh.int}` );
         document.getElementById("feed-container").appendChild(feed)
-        if (i===0){
+
+        if (i === 0) {
           document.getElementById(`${i}-icon`).classList.add("black")
         } else {
           document.getElementById(`${i}-icon`).classList.add(colors[Math.floor(Math.random()*colors.length)])
