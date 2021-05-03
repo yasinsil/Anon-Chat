@@ -67,9 +67,9 @@
       const textNode = document.getElementById('user-input');
       const text = textNode.value;
 
-      if (text.length == 0) textNode.value += '@' + blockId;
-      else if (text[text.length - 1] == ' ') textNode.value += '@' + blockId;
-      else  textNode.value += ' @' + blockId;
+      if (text.length == 0) textNode.value += '@' + blockId + ' ';
+      else if (text[text.length - 1] == ' ') textNode.value += '@' + blockId + ' ';
+      else  textNode.value += ' @' + blockId + ' ';
 
       updateCharCount(textNode);
     }
