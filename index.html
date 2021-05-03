@@ -160,7 +160,7 @@
       //separate first 10 from last 10
       let line = document.createElement("div");
       line.classList = "ui section divider";
-      document.getElementById("feed-container").appendChild(line)
+      document.getElementById("feed-container").appendChild(line);
       const lastTen = await getLastTen(host);
 
       blockCounts = {};
@@ -172,6 +172,10 @@
         const cnt = blockCounts[x.bh.int];
         let feed = createFeedItem(x.bh.int, x.bh.int + '_' + cnt, preprocessMessages(x.message), `https://explorer.chainweb.com/mainnet/chain/1/height/${x.bh.int}` );
         document.getElementById("feed-container").appendChild(feed);
+
+        let line = document.createElement("div");
+        line.classList = "ui fitted divider";
+        document.getElementById("feed-container").appendChild(line);
       })
     }
 
@@ -301,15 +305,15 @@
       <div class="ui raised very padded text container segment" id="container">
         <h2 class="ui header" >Welcome to the Anonymous Kadena chat</h2>
         <h3>Send your message anonymously through a gas station</h3>
-        <div class="ui input" id="input">
-          <input type="text" id="user-input" onkeyup="updateCharCount(this);" maxlength="1023">
-          <button class="ui black right button" id="pay-gas">
+        <form class="ui form" id="input">
+          <textarea placeholder="Your message" id="user-input" onkeyup="updateCharCount(this);" maxlength="1023" style="min-height:100px" rows="3"></textarea>
+          <button class="ui black right floated button" id="pay-gas">
             Send
           </button>
-        </div>
+        </form>
 
         <div class="ui">
-          <br>You've typed <span id="user-input-char-count">0</span> character(s).
+          <br/>You've typed <span id="user-input-char-count">0</span> character(s).
           <span id='user-input-char-count-message'>You are allowed lots more.</span>
         </div>
 
