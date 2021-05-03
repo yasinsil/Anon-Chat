@@ -72,7 +72,6 @@
       else  textNode.value += ' @' + blockId;
 
       updateCharCount(textNode);
-      location.hash = "#feed-item-" + blockId;
     }
 
     const createFeedItem = (blockId, messageId, user, href) => {
@@ -152,7 +151,6 @@
             }
         ]
       });
-      console.log(str);
       return str;
     }
 
