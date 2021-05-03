@@ -164,10 +164,6 @@
       line.classList = "ui section divider";
       document.getElementById("feed-container").appendChild(line)
       const lastTen = await getLastTen(host);
-      lastTen.push({
-        bh: {int: 13},
-        message: "@1587789_1 @1560591_1 @1560591_2"
-      })
 
       blockCounts = {};
 
