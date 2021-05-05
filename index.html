@@ -138,7 +138,8 @@
     var tagsToReplace = {
       '&': '&amp;',
       '<': '&lt;',
-      '>': '&gt;'
+      '>': '&gt;',
+      '\n': '<br/>'
     };
 
     function replaceTag(tag) {
@@ -146,7 +147,7 @@
     }
 
     function safe_tags_replace(str) {
-      return str.replace(/[&<>]/g, replaceTag);
+      return str.replace(/[&<>\n]/g, replaceTag);
     }
 
     function preprocessMessages(str) {
