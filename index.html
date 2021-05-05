@@ -337,7 +337,7 @@
       <div class="ui raised very padded text container segment" id="container">
         <h2 class="ui header" >Welcome to the Anonymous Kadena chat</h2>
         <h3>Send your message anonymously through a gas station</h3>
-        <form class="ui form" id="input">
+        <form class="ui form" id="input" onsubmit="return false">
           <textarea placeholder="Your message" id="user-input" onkeyup="updateCharCount(this);" maxlength="1023" style="min-height:100px" rows="3"></textarea>
           <button class="ui black right floated button" id="pay-gas">
             Send
