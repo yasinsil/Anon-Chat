@@ -38,6 +38,17 @@
       .ui.feed>.event:target {
         background-color: #eaf3ff;
       }
+
+      img.inline-image {
+        word-wrap: break-word;
+        max-width: 90%;
+        max-height: 20em;
+        border:1px solid black;
+      }
+
+      img.inline-image.spoiler {
+        filter: blur(44px);
+      };
     </style>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
@@ -80,7 +91,7 @@
       feedItem.setAttribute("id", "feed-item-"+messageId);
       feedItem.innerHTML =
       `<div class="label">
-        <a href="javascript:citeBlock('${messageId}')" title="Cite message">↩</button>&nbsp;<a href="${href}" target="_blank" title="Open block ${blockId} in explorer">🧱</a>
+        <a href="javascript:citeBlock('${messageId}')" title="Cite message">&#x21A9</button>&nbsp;<a href="${href}" target="_blank" title="Open block ${blockId} in explorer">&#129521</a>
       </div>
       <div class="content">
           ${user}
@@ -147,9 +158,25 @@
             {
                 test: /@([\d_])+/gi,
                 transform: string =>
-                    `<a href="#feed-item-${string.substr(1)}">${string}</a>`
+                    `<a href="#feed-item-${escape(string.substr(1))}">${string}</a>`
             }
-        ]
+        ],
+        options: {
+          attributes: {
+            target: "_blank"
+          },
+          exclude: true,
+          specialTransform: [{
+                test: /^https:\/\/i\.imgur\.com/,
+                transform: string =>
+                      `<div><a href="${string}" target="_blank"><img src="${string}" class="inline-image"/></a></div>`
+          },
+          {
+                test: /./,
+                transform: string =>
+                      `<a href="${string}" target="_blank">${string}</a>`
+          }]
+        }
       });
       return str;
     }
@@ -162,6 +189,11 @@
       line.classList = "ui section divider";
       document.getElementById("feed-container").appendChild(line);
       const lastTen = await getLastTen(host);
+
+      // lastTen.push({
+      //   bh: {int:13},
+      //   message: "@1560592_2"
+      // })
 
       blockCounts = {};
 
@@ -315,6 +347,10 @@
         <div class="ui">
           <br/>You've typed <span id="user-input-char-count">0</span> character(s).
           <span id='user-input-char-count-message'>You are allowed lots more.</span>
+        </div>
+
+        <div class="ui">
+          Images from <em>i.imgur.com</em> domain are allowed and will automatically inline.
         </div>
 
         <div class="ui message hidden" id="requestKey">
