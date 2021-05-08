@@ -66,7 +66,7 @@
     const getLastTen = async (server) => {
       const res = await Pact.fetch.local({
         pactCode: `(free.anon-chat.query-all)`,
-        meta: Pact.lang.mkMeta("", "", 0.0001, 6000, creationTime(), 600)
+        meta: Pact.lang.mkMeta("", "", 0.0001, 60000, creationTime(), 600)
       }, server)
       const all = res.result.data
       all.sort((b, a) => a.bh.int - b.bh.int);
