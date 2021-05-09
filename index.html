@@ -24,7 +24,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
       <p>This chat <b>cannot be moderated. It is a REAL dapp</b>. The front-end can go down but not the contract itself. You can host your own page to send messages and read them.</p>
 	  <p>What is freedom of expression? Without the freedom to offend, it ceases to exist. <br /> -Salman Rushdie</p>
 	  <p>Goebbels was in favor of free speech for views he liked. So was Stalin. If youre really in favor of free speech, then youre in favor of freedom of speech for precisely the views you despise. Otherwise, youre not in favor of free speech. <br /> -Noam Chomsky</p>
-          <p>Without freedom of thought, there can be no such thing as wisdom - and no such thing as public liberty without freedom of speech. </br>-Benjamin Franklin</p> 
+	  <p>Without freedom of thought, there can be no such thing as wisdom - and no such thing as public liberty without freedom of speech. </br>-Benjamin Franklin</p>
 	  <p><b>Do you agree to see and read things you might not be comfortable with?</b> </p>
     </div>
     <div id="popupfoot"> <a href="#" class="close agree">I agree and I am 18+</a> <br /><br /> <a class="agree"style="color:red;" href="https://anedak.com/">I do not agree, take me to safety</a> </div>
@@ -152,6 +152,21 @@ container{
       img.inline-image.spoiler {
         filter: blur(44px);
       };
+	  
+#img {
+    word-wrap: break-word;
+    max-width: 90%;
+    max-height: 20em;
+    border:1px solid black;
+}
+
+.blur {
+  -webkit-filter: blur(5px);
+  -moz-filter: blur(5px);
+  -o-filter: blur(5px);
+  -ms-filter: blur(5px);
+  filter: blur(12px);
+}
     </style>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
@@ -273,7 +288,7 @@ container{
           specialTransform: [{
                 test: /^https:\/\/i\.imgur\.com/,
                 transform: string =>
-                      `<div><a href="${string}" target="_blank"><img src="${string}" class="inline-image"/></a></div>`
+                      `<div><a class="blur" onclick="spoiler(this)" target="_blank"><img src="${string}" class="inline-image" alt="image"/></a></div>`
           },
           {
                 test: /./,
@@ -473,6 +488,12 @@ container{
       </div>
   </div>
 </body>
+
+<script>
+function spoiler(elem) {
+  	elem.classList.toggle('blur');
+}
+</script>
 
   <script>
     updateCharCount(document.getElementById('user-input'));
