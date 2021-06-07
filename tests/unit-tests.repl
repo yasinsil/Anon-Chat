@@ -5,19 +5,19 @@
 (expect
   "Thread1 created at 1970-01-01T00:00:00Z"
   "VGhlIFZlcnkgRmlyc3QgVGhyZWFk created"
-    (newthread "VGhlIFZlcnkgRmlyc3QgVGhyZWFk" "VGhlIFZlcnkgRmlyc3QgVGhyZWFk"))
+    (newthread "VGhlIFZlcnkgRmlyc3QgVGhyZWFk"))
 
 (env-chain-data { "block-time": (time "1970-01-01T12:00:00Z") })
 (expect
   "Thread2 created at 1970-01-01T12:00:00Z"
   "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA== created"
-    (newthread "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA==" "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA=="))
+    (newthread "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA=="))
 
 (env-chain-data { "block-time": (time "1970-01-01T00:00:00Z") })
 (expect-failure
   "Thread is not base64"
   "Failure: Could not decode string:"
-    (newthread "VGhlIcnkgRmlyc3QgVGhyZWFk" "VGhlIcnkgRmlyc3QgVGhyZWFk"))
+    (newthread "VGhlIcnkgRmlyc3QgVGhyZWFk"))
 
 (commit-tx)
 (begin-tx)

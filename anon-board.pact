@@ -38,17 +38,17 @@
     (enforce-time time "before"(< (at "block-time" (chain-data)) (add-time time threadlife))))
 
   ; Function to create a new thread
-  (defun newthread (name:string thread:string)
+  (defun newthread (name:string)
   @doc " Open a new thread. "
      ; Enforce thread length
-     (enforce (>= (length thread) 8) "thread name is too short")
-     (enforce (<= (length thread) 512) "thread name is too long")
+     (enforce (>= (length name) 8) "thread name is too short")
+     (enforce (<= (length name) 512) "thread name is too long")
      ; Only allow base64 or fail
-     (base64-decode thread)
+     (base64-decode name)
        ; Insert the thread in the database
        (insert thread-table name {"name": name, "last-message" : (at "block-time" (chain-data))})
        ; Feedback it completed
-       (format "{} created" [thread]))
+       (format "{} created" [name]))
 
   ; Function to send a new message
   (defun newmessage (thread:string username:string message:string)
