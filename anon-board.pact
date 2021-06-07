@@ -89,7 +89,7 @@
   (defun getmessages (thread:string)
   @doc " Query messages from a thread. "
     ; Read board table and select messages containing the right thread
-    (select board-table [ 'thread,'username,'message,'time ] (where 'thread (= thread))))
+    (select board-table [ 'username,'message,'time ] (where 'thread (= thread))))
 
   ; Function to get all messages
   (defun getallmessages ()
@@ -103,5 +103,3 @@
 (create-table board-table)
 (create-table thread-table)
 (create-table last-id)
-; Set message id to 0
-(write last-id "" {"last-id": 0})
