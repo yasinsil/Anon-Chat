@@ -66,7 +66,7 @@
        (update thread-table thread {"last-message": (at "block-time" (chain-data))}))
      ; Read last message id
      (with-default-read last-id "" {"last-id": 0} { "last-id" := last }
-       ; Insert the thread in the database
+       ; Insert the message in the database
        (write board-table (format "{}" [(+ last 1)]) {"thread": thread, "time": (at "block-time" (chain-data)), "username": username, "message": message })
        ; Increment last message id
        (write last-id "" {"last-id": (+ last 1)}))
