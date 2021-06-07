@@ -1,0 +1,12 @@
+(begin-tx)
+(load "anon-board.pact")
+(commit-tx)
+
+;; formal verification
+;;(load "tests/validate.repl")
+
+;; typecheck
+;;(load "tests/typecheck.repl")
+
+;; unit-tests
+(load "tests/unit-tests.repl")

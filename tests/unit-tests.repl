@@ -1,0 +1,130 @@
+(begin-tx)
+(use board-chat)
+
+(env-chain-data { "block-time": (time "1970-01-01T00:00:00Z") })
+(expect
+  "Thread1 created at 1970-01-01T00:00:00Z"
+  "VGhlIFZlcnkgRmlyc3QgVGhyZWFk created"
+    (newthread "VGhlIFZlcnkgRmlyc3QgVGhyZWFk" "VGhlIFZlcnkgRmlyc3QgVGhyZWFk"))
+
+(env-chain-data { "block-time": (time "1970-01-01T12:00:00Z") })
+(expect
+  "Thread2 created at 1970-01-01T12:00:00Z"
+  "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA== created"
+    (newthread "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA==" "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA=="))
+
+(env-chain-data { "block-time": (time "1970-01-01T00:00:00Z") })
+(expect-failure
+  "Thread is not base64"
+  "Failure: Could not decode string:"
+    (newthread "VGhlIcnkgRmlyc3QgVGhyZWFk" "VGhlIcnkgRmlyc3QgVGhyZWFk"))
+
+(commit-tx)
+(begin-tx)
+(use board-chat)
+
+(env-chain-data { "block-time": (time "1970-01-01T00:01:00Z") })
+(expect
+  "Message1 created at 1970-01-01T00:01:00Z"
+  "VXNlcjE= Said TXlmaXJzdG1lc3NhZ2U= on VGhlIFZlcnkgRmlyc3QgVGhyZWFk"
+    (newmessage "VGhlIFZlcnkgRmlyc3QgVGhyZWFk" "VXNlcjE=" "TXlmaXJzdG1lc3NhZ2U="))
+
+(env-chain-data { "block-time": (time "1970-01-01T00:02:00Z") })
+(expect
+  "Message2 created at 1970-01-01T00:02:00Z"
+  "VXNlcjE= Said TXlzZWNvbmRtZXNzYWdl on VGhlIFZlcnkgRmlyc3QgVGhyZWFk"
+    (newmessage "VGhlIFZlcnkgRmlyc3QgVGhyZWFk" "VXNlcjE=" "TXlzZWNvbmRtZXNzYWdl"))
+
+(env-chain-data { "block-time": (time "1970-01-01T00:03:00Z") })
+(expect
+  "Message3 created at 1970-01-01T00:03:00Z"
+  "VXNlcjE= Said TXl0aGlyZG1lc3NhZ2U= on VGhlIFZlcnkgRmlyc3QgVGhyZWFk"
+    (newmessage "VGhlIFZlcnkgRmlyc3QgVGhyZWFk" "VXNlcjE=" "TXl0aGlyZG1lc3NhZ2U="))
+
+
+(env-chain-data { "block-time": (time "1970-01-01T12:01:00Z") })
+(expect
+  "Message4 created at 1970-01-01T12:01:00Z"
+  "VXNlcjE= Said TXlmaXJzdG1lc3NhZ2U= on VGhlIFZlcnkgU2Vjb25kIFRocmVhZA=="
+    (newmessage "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA==" "VXNlcjE=" "TXlmaXJzdG1lc3NhZ2U="))
+
+(env-chain-data { "block-time": (time "1970-01-01T12:02:00Z") })
+(expect
+  "Message5 created at 1970-01-01T12:02:00Z"
+  "VXNlcjE= Said TXlzZWNvbmRtZXNzYWdl on VGhlIFZlcnkgU2Vjb25kIFRocmVhZA=="
+    (newmessage "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA==" "VXNlcjE=" "TXlzZWNvbmRtZXNzYWdl"))
+
+(env-chain-data { "block-time": (time "1970-01-01T12:01:00Z") })
+(expect-failure
+  "Username is not base64"
+  "Failure: Could not decode string:"
+    (newmessage "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA==" "c2V3aWZqaWF3ZnViaGlzdWFmaGJpeXdmIA3f=" "TXlmaXJzdG1lc3NhZ2U="))
+
+(env-chain-data { "block-time": (time "1970-01-01T12:01:00Z") })
+(expect-failure
+  "Message is not base64"
+  "Failure: Could not decode string:"
+    (newmessage "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA==" "VXNlcjE=" "TXlmaXsd4r4ta4Jlc3NhZ2U3="))
+
+(commit-tx)
+(begin-tx)
+(use board-chat)
+
+(env-chain-data { "block-time": (time "1971-01-01T00:01:00Z") })
+(expect-failure
+  "Cannot write in an archived thread"
+  ""
+    (newmessage "VGhlIFZlcnkgRmlyc3QgVGhyZWFk" "VXNlcjE=" "TXlmaXJzdG1lc3NhZ2U="))
+
+(commit-tx)
+(begin-tx)
+(use board-chat)
+
+(env-chain-data { "block-time": (time "1970-01-01T00:00:00Z") })
+;(expect
+;  "Received all threads"
+;  [{"last-message": "1970-01-01T00:03:00Z","name": "VGhlIFZlcnkgRmlyc3QgVGhyZWFk"}
+;   {"last-message": "1970-01-01T12:02:00Z","name": "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA=="}]
+;    (getallthreads))
+"All Threads"
+(getallthreads)
+"All messages"
+(getallmessages)
+"Messages from one thread"
+(getmessages "VGhlIFZlcnkgRmlyc3QgVGhyZWFk")
+"Messages from the other thread"
+(getmessages "VGhlIFZlcnkgU2Vjb25kIFRocmVhZA==")
+
+(commit-tx)
+(begin-tx)
+(use board-chat)
+
+;Receives a thread from the future because REPL, will not be an issue live
+(env-chain-data { "block-time": (time "1970-01-01T01:00:00Z") })
+"Returns active threads at 1970-01-01T01:00:00Z"
+(getactivethreads)
+
+(commit-tx)
+(begin-tx)
+(use board-chat)
+
+(env-chain-data { "block-time": (time "1970-01-01T13:00:01Z") })
+"Returns active threads at 1970-01-01T13:00:01Z"
+(getactivethreads)
+
+(commit-tx)
+(begin-tx)
+(use board-chat)
+
+(env-chain-data { "block-time": (time "1970-01-02T01:00:00Z") })
+"Returns active threads at 1970-01-02T01:00:00Z"
+(getactivethreads)
+
+(commit-tx)
+(begin-tx)
+(use board-chat)
+
+(env-chain-data { "block-time": (time "1970-01-03T00:00:00Z") })
+"Returns active threads at 1970-01-03T00:00:00Z"
+(getactivethreads)
+(commit-tx)
