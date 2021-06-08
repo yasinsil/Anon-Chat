@@ -24,25 +24,34 @@
 
       const host = `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`;
 
+      // initial thread during load of page, after that, this will store any thread we click on. And will be used for gas-pay function.
+      var currentActiveThreadNameBase64 = "Rmlyc3QgdGVzdCBicmVhZA=="
+
       var creationTime = () => Math.round((new Date).getTime() / 1000) - 15;
 
-      const getactiveThreads = async (server) => {
+      async function getAllMessagesFromThread(threadName) {
+        // threadName is already base64 so no need to encode now
         const res = await Pact.fetch.local({
-          pactCode: `(free.board-chat.getmessages "Rmlyc3QgdGVzdCBicmVhZA==")`,
+          pactCode: `(free.board-chat.getmessages "${threadName}")`,
           meta: Pact.lang.mkMeta("", "", 0.0001, 60000, creationTime(), 600)
-        }, server)
+        }, host)
         const all = res.result.data
+        console.log("[getAllMessagesFromThread] ")
+        console.log(all)
         all.sort((a, b) => a.bh.int - b.bh.int);
+        // lol no idea why the slice here (for shallow copy? or was an attempt to cut the 1st element?)
         const activeThreads = all.slice(0)
         return activeThreads
       }
 
-      const getactivethreads = async (server) => {
+      async function getActiveThreads() {
         const res = await Pact.fetch.local({
           pactCode: `(free.board-chat.getactivethreads)`,
           meta: Pact.lang.mkMeta("", "", 0.0001, 60000, creationTime(), 600)
-        }, server)
+        }, host)
         const all = res.result.data
+        console.log("[getActiveThreads]")
+        console.log(all)
         const activethreads = all.slice(0)
         return activethreads
       }
@@ -72,15 +81,27 @@
         return feedItem;
       }
 
-      const createFeedItem2 = (blockId, messageId, name, href) => {
-        var feedItem2 = document.createElement("div");
-        feedItem2.className = "event";
-        feedItem2.setAttribute("id", "feed-item-" + messageId);
-        feedItem2.innerHTML =
-          `<div class="content">
-          &#160; &#160; ${name}
-      </div>`
-        return feedItem2;
+      const createSidebarThread = (blockId, messageId, name, href) => {
+        var threadMenuButton = document.createElement("div");
+        threadMenuButton.className = "event";
+        // there's no messageId in threads so you might need to update that, for now it's broken but 
+        // doesn't affect anything, the id of all <div> items here is "feed-item-undefined" :) but you also can't put "name" as id, since it has spaces.
+        // also won't work the raw base64 form of the "name" because it has special characters. the order number from initial array would work for these though.
+        threadMenuButton.setAttribute("id", "feed-item-" + messageId);
+        
+        // keep encoded to pass to function that works with threads
+        base64name = window.btoa(name)
+        // we call changePageToThread with letting it know the name, but here this name is not base64, so will need to convert after click.
+        threadMenuButton.innerHTML =
+          `
+          <button onclick="changePageToThread('${base64name}')"> 
+            <div class="content">
+            &#160; &#160; ${name}
+            </div>
+          </button>
+          `
+
+        return threadMenuButton;
       }
 
       const MaximumCharacterCount = 1023;
@@ -167,22 +188,27 @@
         return str;
       }
 
-      const addFeed = async () => {
+      async function createFeedMessages(threadName) {
+
+        // clear the thread element of any existing content, before adding messages
+        document.getElementById("feed-container").innerHTML = '';
 
         //separate first 10 from last 10
         let line = document.createElement("div");
         line.classList = "ui section divider";
         document.getElementById("feed-container").appendChild(line);
-        const activeThreads = await getactiveThreads(host);
 
-        // activeThreads.push({
+        // this gets all messages of a specific thread
+        const messages = await getAllMessagesFromThread(threadName);
+
+        // messages.push({
         //   bh: {int:13},
         //   message: "@1560592_2"
         // })
 
         blockCounts = {};
 
-        activeThreads.map((x, i) => {
+        messages.map((x, i) => {
           if (blockCounts[x.bh.int] === undefined) {
             blockCounts[x.bh.int] = 1;
           } else blockCounts[x.bh.int] += 1;
@@ -196,12 +222,12 @@
         })
       }
 
-      const addFeed2 = async () => {
+      async function createSidebarThreadButtons() {
 
         //separate first 10 from last 10
         let line = document.createElement("div");
-        document.getElementById("feed-container2").appendChild(line);
-        const activethreads = await getactivethreads(host);
+        document.getElementById("sidebar-threads-container").appendChild(line);
+        const activethreads = await getActiveThreads();
 
         // activeThreads.push({
         //   bh: {int:13},
@@ -211,17 +237,27 @@
         blockCounts = {};
 
         activethreads.map((x, i) => {
-          let feed2 = createFeedItem2((x.time), (x.message), preprocessMessages(x.name));
-          document.getElementById("feed-container2").appendChild(feed2);
+          let feed2 = createSidebarThread((x.time), (x.message), preprocessMessages(x.name));
+          document.getElementById("sidebar-threads-container").appendChild(feed2);
           let line = document.createElement("div");
           line.classList = "ui fitted divider";
-          document.getElementById("feed-container2").appendChild(line);
+          document.getElementById("sidebar-threads-container").appendChild(line);
         })
       }
 
+      // function to cleanup all thread div and insert the newly fetched messages from another thread 
+      async function changePageToThread(threadName) {  
+        // pass the thread name to fetch all messages and create their items
+        await createFeedMessages(threadName);
+        currentActiveThreadNameBase64 = threadName
+        // we might want to add other activities here during a change of thread page, like call a refresh of all threads to refresh the sidebar?
+        // ...
+      }
+
       window.addEventListener('load', async function (event) {
-        await addFeed();
-        await addFeed2();
+        // we must use some thread name as the "first" on page load, so we hardcoded "Rmlyc3QgdGVzdCBicmVhZA==" in this global var, as the initial thread.
+        await createFeedMessages(currentActiveThreadNameBase64);
+        await createSidebarThreadButtons();
         document.getElementById("pay-gas").addEventListener('click', async function () {
           let user = document.getElementById("user-input").value;
           if (checkText(user)) {
@@ -232,14 +268,19 @@
         }, false);
       }, false);
 
+      // so since this function only accepts user and not thread name, we'll simply use a global variable to store the current active thread,
+      // instead of passing it directly to this function as argument. 
+      // because when the 'click' event is defined, we don't know what thread will be active at the time of a click.
       const payGas = async (user) => {
         try {
           const kp = Pact.crypto.genKeyPair();
+          // this encrypts user name to base64
           var user = window.btoa(user);
+
           const tx = await Pact.fetch.send(
             {
               networkId: "testnet04",
-              pactCode: `(free.board-chat.newmessage "Rmlyc3QgdGVzdCBicmVhZA==" "YW5vbg==" ${JSON.stringify(user)})`,
+              pactCode: `(free.board-chat.newmessage "${currentActiveThreadNameBase64}" "${user}" ${JSON.stringify(user)})`,
               keyPairs: [
                 {
                   publicKey: kp.publicKey,
@@ -564,7 +605,7 @@ img.inline-image.spoiler {
               Create
             </button>
           </div>
-          <div class="threadsList" id="feed-container2">
+          <div class="threadsList" id="sidebar-threads-container">
           </div>
         </div>
       </div>
