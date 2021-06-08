@@ -14,7 +14,7 @@
     " Time in seconds before threads get archived. ")
 
   ; Schema & Table containing every messages
-  (defschema board-schema thread:string time:time username:string message:string)
+  (defschema board-schema thread:string bh:integer username:string message:string)
   (deftable board-table:{board-schema})
 
   ; Schema & Table containing threads
@@ -67,7 +67,7 @@
      ; Read last message id
      (with-default-read last-id "" {"last-id": 0} { "last-id" := last }
        ; Insert the message in the database
-       (write board-table (format "{}" [(+ last 1)]) {"thread": thread, "time": (at "block-time" (chain-data)), "username": username, "message": message })
+       (write board-table (format "{}" [(+ last 1)]) {"thread": thread, "bh": (at "block-height" (chain-data)), "username": username, "message": message })
        ; Increment last message id
        (write last-id "" {"last-id": (+ last 1)}))
      ; Feedback it completed
@@ -89,7 +89,7 @@
   (defun getmessages (thread:string)
   @doc " Query messages from a thread. "
     ; Read board table and select messages containing the right thread
-    (select board-table [ 'username,'message,'time ] (where 'thread (= thread))))
+    (select board-table [ 'username,'message,'bh ] (where 'thread (= thread))))
 
   ; Function to get all messages
   (defun getallmessages ()

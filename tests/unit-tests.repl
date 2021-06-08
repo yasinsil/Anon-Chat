@@ -23,26 +23,26 @@
 (begin-tx)
 (use board-chat)
 
-(env-chain-data { "block-time": (time "1970-01-01T00:01:00Z") })
+(env-chain-data { "block-height": 1 })
 (expect
   "Message1 created at 1970-01-01T00:01:00Z"
   "VXNlcjE= Said TXlmaXJzdG1lc3NhZ2U= on VGhlIFZlcnkgRmlyc3QgVGhyZWFk"
     (newmessage "VGhlIFZlcnkgRmlyc3QgVGhyZWFk" "VXNlcjE=" "TXlmaXJzdG1lc3NhZ2U="))
 
-(env-chain-data { "block-time": (time "1970-01-01T00:02:00Z") })
+(env-chain-data { "block-height": 3 })
 (expect
   "Message2 created at 1970-01-01T00:02:00Z"
   "VXNlcjE= Said TXlzZWNvbmRtZXNzYWdl on VGhlIFZlcnkgRmlyc3QgVGhyZWFk"
     (newmessage "VGhlIFZlcnkgRmlyc3QgVGhyZWFk" "VXNlcjE=" "TXlzZWNvbmRtZXNzYWdl"))
 
-(env-chain-data { "block-time": (time "1970-01-01T00:03:00Z") })
+(env-chain-data { "block-height": 5 })
 (expect
   "Message3 created at 1970-01-01T00:03:00Z"
   "VXNlcjE= Said TXl0aGlyZG1lc3NhZ2U= on VGhlIFZlcnkgRmlyc3QgVGhyZWFk"
     (newmessage "VGhlIFZlcnkgRmlyc3QgVGhyZWFk" "VXNlcjE=" "TXl0aGlyZG1lc3NhZ2U="))
 
 
-(env-chain-data { "block-time": (time "1970-01-01T12:01:00Z") })
+(env-chain-data { "block-height": 456 })
 (expect
   "Message4 created at 1970-01-01T12:01:00Z"
   "VXNlcjE= Said TXlmaXJzdG1lc3NhZ2U= on VGhlIFZlcnkgU2Vjb25kIFRocmVhZA=="
