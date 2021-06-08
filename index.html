@@ -1,0 +1,624 @@
+<html>
+
+<head>
+  <title>Anon Board</title>
+  <meta name="description" content="Free anonymous chat engraved on the Kadena network">
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+  <script src="https://kit.fontawesome.com/6c30d9724b.js" crossorigin="anonymous"></script>
+
+  <div class="maintext">
+    <div id="boxes">
+      <div style="width: 1478px; font-size: 32pt; color:white; height: 602px; display: none; opacity: 0.9;" id="mask">
+      </div>
+    </div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+    <script src="main.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <link rel="icon" href="img/favicon.ico">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pact-lang-api@4.1.2/pact-lang-api-global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/anchorme@2.1.2/dist/browser/anchorme.min.js"></script>
+
+    <script>
+
+      const host = `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`;
+
+      var creationTime = () => Math.round((new Date).getTime() / 1000) - 15;
+
+      const getactiveThreads = async (server) => {
+        const res = await Pact.fetch.local({
+          pactCode: `(free.board-chat.getmessages "Rmlyc3QgdGVzdCBicmVhZA==")`,
+          meta: Pact.lang.mkMeta("", "", 0.0001, 60000, creationTime(), 600)
+        }, server)
+        const all = res.result.data
+        all.sort((a, b) => a.bh.int - b.bh.int);
+        const activeThreads = all.slice(0)
+        return activeThreads
+      }
+
+      const getactivethreads = async (server) => {
+        const res = await Pact.fetch.local({
+          pactCode: `(free.board-chat.getactivethreads)`,
+          meta: Pact.lang.mkMeta("", "", 0.0001, 60000, creationTime(), 600)
+        }, server)
+        const all = res.result.data
+        const activethreads = all.slice(0)
+        return activethreads
+      }
+
+      function citeBlock(blockId) {
+        const textNode = document.getElementById('user-input');
+        const text = textNode.value;
+
+        if (text.length == 0) textNode.value += '@' + blockId + ' ';
+        else if (text[text.length - 1] == ' ') textNode.value += '@' + blockId + ' ';
+        else textNode.value += ' @' + blockId + ' ';
+
+        updateCharCount(textNode);
+      }
+
+      const createFeedItem = (blockId, messageId, user, message, href) => {
+        var feedItem = document.createElement("div");
+        feedItem.className = "event";
+        feedItem.setAttribute("id", "feed-item-" + messageId);
+        feedItem.innerHTML =
+          `<div class="label">
+        <a href="javascript:citeBlock('${messageId}')" title="Cite message">&#x21A9</button>&nbsp;<a href="${href}" target="_blank" title="Open block ${blockId} in explorer">&#129521</a>
+      </div>
+      <div class="content">
+          ${user} <br> ${message}
+      </div>`
+        return feedItem;
+      }
+
+      const createFeedItem2 = (blockId, messageId, name, href) => {
+        var feedItem2 = document.createElement("div");
+        feedItem2.className = "event";
+        feedItem2.setAttribute("id", "feed-item-" + messageId);
+        feedItem2.innerHTML =
+          `<div class="content">
+          &#160; &#160; ${name}
+      </div>`
+        return feedItem2;
+      }
+
+      const MaximumCharacterCount = 1023;
+      const MinimumCharacterCount = 9;
+
+      function updateCharCount(el) {
+        const count = el.value.length;
+
+        if (count > MaximumCharacterCount) {
+          el.value = el.value.substr(0, MaximumCharacterCount);
+        }
+
+        var msg = '';
+        if (count < MinimumCharacterCount) {
+          msg = 'Your message is too short.';
+        } else if (count < (MaximumCharacterCount - MinimumCharacterCount) / 2 + MinimumCharacterCount) {
+          msg = 'You are allowed lots more.';
+        } else {
+          const left = MaximumCharacterCount - count;
+          msg = 'You are allowed ' + left + ' more.';
+        }
+
+        document.getElementById('user-input-char-count').innerHTML = count;
+        document.getElementById('user-input-char-count-message').innerHTML = msg;
+
+        return true;
+      }
+
+      const checkText = (text) => {
+        const profs = [
+        ]
+        if (text.length > MaximumCharacterCount || profs.includes(text) || text === "" || text.length < MinimumCharacterCount) {
+          return true
+        } else {
+          return false
+        }
+      }
+
+      var tagsToReplace = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '\n': '<br/>'
+      };
+
+      function replaceTag(tag) {
+        return tagsToReplace[tag] || tag;
+      }
+
+      function safe_tags_replace(str) {
+        return str.replace(/[&<>\n]/g, replaceTag);
+      }
+
+      function preprocessMessages(str) {
+        str = safe_tags_replace(str);
+        str = anchorme({
+          input: str,
+          extensions: [
+            // an extension for mentions
+            {
+              test: /@([\d_])+/gi,
+              transform: string =>
+                `<a href="#feed-item-${escape(string.substr(1))}">${string}</a>`
+            }
+          ],
+          options: {
+            attributes: {
+              target: "_blank"
+            },
+            exclude: true,
+            specialTransform: [{
+              test: /^https:\/\/i\.imgur\.com/,
+              transform: string =>
+                `<div><a class="blur" onclick="spoiler(this)" target="_blank"><img src="${string}" class="inline-image" alt="image"/></a></div>`
+            },
+            {
+              test: /./,
+              transform: string =>
+                `<a href="${string}" target="_blank">${string}</a>`
+            }]
+          }
+        });
+        var str = window.atob(str);
+        return str;
+      }
+
+      const addFeed = async () => {
+
+        //separate first 10 from last 10
+        let line = document.createElement("div");
+        line.classList = "ui section divider";
+        document.getElementById("feed-container").appendChild(line);
+        const activeThreads = await getactiveThreads(host);
+
+        // activeThreads.push({
+        //   bh: {int:13},
+        //   message: "@1560592_2"
+        // })
+
+        blockCounts = {};
+
+        activeThreads.map((x, i) => {
+          if (blockCounts[x.bh.int] === undefined) {
+            blockCounts[x.bh.int] = 1;
+          } else blockCounts[x.bh.int] += 1;
+          const cnt = blockCounts[x.bh.int];
+          let feed = createFeedItem(x.bh.int, x.bh.int + '_' + cnt,preprocessMessages(x.username), preprocessMessages(x.message), `https://explorer.chainweb.com/testnet/chain/1/height/${x.bh.int}`);
+          document.getElementById("feed-container").appendChild(feed);
+
+          let line = document.createElement("div");
+          line.classList = "ui fitted divider";
+          document.getElementById("feed-container").appendChild(line);
+        })
+      }
+
+      const addFeed2 = async () => {
+
+        //separate first 10 from last 10
+        let line = document.createElement("div");
+        document.getElementById("feed-container2").appendChild(line);
+        const activethreads = await getactivethreads(host);
+
+        // activeThreads.push({
+        //   bh: {int:13},
+        //   message: "@1560592_2"
+        // })
+
+        blockCounts = {};
+
+        activethreads.map((x, i) => {
+          let feed2 = createFeedItem2((x.time), (x.message), preprocessMessages(x.name));
+          document.getElementById("feed-container2").appendChild(feed2);
+          let line = document.createElement("div");
+          line.classList = "ui fitted divider";
+          document.getElementById("feed-container2").appendChild(line);
+        })
+      }
+
+      window.addEventListener('load', async function (event) {
+        await addFeed();
+        await addFeed2();
+        document.getElementById("pay-gas").addEventListener('click', async function () {
+          let user = document.getElementById("user-input").value;
+          if (checkText(user)) {
+            alert("Please keep messages between 8 and 1024 characters.")
+          } else {
+            payGas(user);
+          }
+        }, false);
+      }, false);
+
+      const payGas = async (user) => {
+        try {
+          const kp = Pact.crypto.genKeyPair();
+          var user = window.btoa(user);
+          const tx = await Pact.fetch.send(
+            {
+              networkId: "testnet04",
+              pactCode: `(free.board-chat.newmessage "Rmlyc3QgdGVzdCBicmVhZA==" "YW5vbg==" ${JSON.stringify(user)})`,
+              keyPairs: [
+                {
+                  publicKey: kp.publicKey,
+                  secretKey: kp.secretKey,
+                  clist: [
+                    //capability to use gas station
+                    {
+                      name: `free.board-chat-gas-station.GAS_PAYER`,
+                      args: ["hi", { int: 1 }, 1.0]
+                    }
+                  ]
+                }],
+              meta: Pact.lang.mkMeta
+                (
+                  "board-chat-gas-payer",
+                  "1",
+                  0.000000000001,
+                  1200,
+                  creationTime(),
+                  28800
+                )
+            }, host);
+          document.getElementById("requestKey").classList.remove("hidden")
+          document.getElementById("header-text").textContent = "Transaction sent to Kadena testnet";
+          document.getElementById("spinner").classList.add("active")
+          document.getElementById("content-text").textContent = "Please wait, this box will update once the transaction is confirmed in about 30 seconds."
+          document.getElementById("header-two-text").textContent = "Curious how interacting with a blockchain can be so simple?";
+          document.getElementById("content-two-text").textContent = "With most blockchains you need an account, a wallet, and some crypto in order to interact with them. Kadena's solution to this onboarding problem is gas stations; an account that exists only to fund gas payments on behalf of other users."
+          document.getElementById("content-three-text").textContent = "Thanks to gas stations, interacting with Kadena can be as simple as filling out a web form."
+          try {
+            let hello = await Pact.fetch.listen({ "listen": tx.requestKeys[0] }, host);
+            if (hello.result.status !== "success") {
+              document.getElementById("header-text").textContent = "ERROR! INVESTIGATE BELOW";
+              document.getElementById("content-text").textContent = JSON.stringify(hello);
+              document.getElementById("spinner").classList.remove("active")
+              document.getElementById("header-two-text").textContent = "";
+              document.getElementById("content-two-text").textContent = "";
+              document.getElementById("content-three-text").textContent = "";
+              document.getElementById("link-text").textContent = "Block Exporer Link";
+              document.getElementById("link-text").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+            }
+            else {
+              document.getElementById("header-text").textContent = "Success!";
+              document.getElementById("content-text").textContent = JSON.stringify(hello.result.data) + " has been added to the Memory Wall.";
+              document.getElementById("spinner").classList.remove("active")
+              document.getElementById("header-two-text").textContent = "";
+              document.getElementById("content-two-text").textContent = "";
+              document.getElementById("content-three-text").textContent = "";
+              document.getElementById("link-text").textContent = "View transaction in Block Explorer";
+              document.getElementById("link-text").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+            }
+          } catch (e) {
+            console.log(e)
+            document.getElementById("header-text").textContent = "Waiting Timed out, but your tx was sent. Look up Below";
+            document.getElementById("content-text").textContent = tx.requestKeys[0];
+            document.getElementById("spinner").classList.remove("active")
+            document.getElementById("header-two-text").textContent = "";
+            document.getElementById("content-two-text").textContent = "";
+            document.getElementById("content-three-text").textContent = "";
+            document.getElementById("link-text").textContent = "View transaction in Block Explorer";
+            document.getElementById("link-text").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+          }
+        } catch (e) {
+          document.getElementById("requestKey").classList.remove("hidden")
+          document.getElementById("header-text").textContent = "Transaction was Rejected";
+          document.getElementById("spinner").classList.remove("active")
+          document.getElementById("header-two-text").textContent = "";
+          document.getElementById("content-two-text").textContent = "";
+          document.getElementById("content-three-text").textContent = "";
+          document.getElementById("content-text").textContent = "Transaction was not sent to Blockchain. Check your keys or metadata"
+        }
+      }
+
+    </script>
+
+<style>
+  body {
+  line-height: inherit !important;
+  background-color: #1d1f21 !important;
+  color: #c5c8c6;
+}
+.ui.segment{
+    background-color: #1d1f21 !important;
+    color: #c5c8c6;
+}
+.ui.form textarea {
+    background-color: rgb(46, 46, 46) !important;
+    color: #c5c8c6 !important;
+}
+::selection {
+    color: #000000;
+    background: #ffffff;
+  }
+
+.parent {
+  display: grid;
+  grid-template-columns: minmax(25rem, 25%) 1fr;
+}
+
+.sidebar {
+  border-right: 1px solid #2e2e2e;
+  background: #111111;
+}
+
+.threads {
+  display: flex;
+  flex-direction: column;
+}
+
+.newThread {
+  padding: 0.5rem;
+  user-select: none;
+}
+.newThreadButton {
+  background-color: #424242;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+.newThreadButton:hover {
+  background-color: #585858;
+}
+.newThreadButton:active {
+  background-color: #707070;
+}
+.newThreadInput {
+  height: 2.39rem;
+}
+
+.thradsTitle {
+  font-size: 2rem;
+  padding: 1rem;
+}
+
+.threadsList {
+  display: grid;
+  padding: 1rem 0rem;
+  gap: 1rem;
+  text-align: initial;
+}
+
+.threadsList > span {
+  background-color: #1f1f1f;
+  padding: 0.5rem 1rem;
+  border-radius: 0rem;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.threadsList > span:hover {
+  background-color: #2f2f2f;
+}
+
+.threadsList > span:active {
+  background-color: rgb(70, 70, 70);
+}
+
+#mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  background-color: #000;
+  display: none;
+}
+#boxes .window {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 440px;
+  height: 200px;
+  display: none;
+  z-index: 9999;
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+}
+#boxes #dialog {
+  width: 450px;
+  height: auto;
+  padding: 1rem;
+  background-color: #131313;
+  font-family: "Segoe UI Light", sans-serif;
+  font-size: 15pt;
+}
+.maintext {
+  text-align: center;
+  font-family: "Segoe UI", sans-serif;
+  text-decoration: none;
+}
+body {
+  background: url("bg.jpg");
+}
+#lorem {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 12pt;
+  text-align: left;
+  margin: 0.5rem;
+}
+#popupfoot {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 16pt;
+  padding: 10px 20px;
+  display: grid;
+}
+#popupfoot a {
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 3rem;
+}
+
+.agree:hover {
+  background-color: #dadada1c;
+}
+.agree:active {
+  background-color: #b6b6b646;
+}
+
+.popupoption:hover {
+  background-color: #d1d1d1;
+  color: green;
+}
+.popupoption2:hover {
+  color: red;
+}
+
+container {
+  margin: 1rem !important;
+}
+input {
+  border: 1px solid #555555;
+  background-color: #2e2e2e;
+}
+#spinner {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+i.close.icon::before {
+  cursor: pointer;
+  position: absolute;
+  font-size: 20px;
+  color: black;
+  left: -33px;
+  top: 48px;
+}
+anon-chat-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+#module-text {
+  margin-top: 30px;
+}
+.ui.feed > .event:target {
+  background-color: #111111;
+}
+
+img.inline-image {
+  word-wrap: break-word;
+  max-width: 90%;
+  max-height: 20em;
+  border: 1px solid black;
+}
+
+img.inline-image.spoiler {
+  filter: blur(44px);
+}
+
+#img {
+  word-wrap: break-word;
+  max-width: 90%;
+  max-height: 20em;
+  border: 1px solid black;
+}
+
+.blur {
+  -webkit-filter: blur(5px);
+  -moz-filter: blur(5px);
+  -o-filter: blur(5px);
+  -ms-filter: blur(5px);
+  filter: blur(12px);
+}
+
+.content {
+  overflow: hidden;
+}
+
+
+
+::-webkit-scrollbar {
+    width: 1rem;
+}
+
+::-webkit-scrollbar-track {
+	background-color: #2e2e2e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #707070;
+}
+</style>
+
+</head>
+
+<body>
+
+    <div class="parent">
+
+      <div class="sidebar">
+
+        <div class="threads">
+          <span class="thradsTitle">Active Threads</span>
+
+          <div class="newThread">
+            <textarea placeholder="Thread name" id="user-input2"
+              style="margin-bottom: 0.5rem; min-height:22px; min-width:220px" rows="2"></textarea>
+            <button class="ui gray right floated button" id="pay-gas2">
+              Create
+            </button>
+          </div>
+          <div class="threadsList" id="feed-container2">
+          </div>
+        </div>
+      </div>
+
+      <div class="main">
+
+        <div class="ui text segment  container " id="container">
+          <h2 class="ui header" style="color: #c5c8c6 !important;">Anonymous message board</h2>
+          <h3>Send your message anonymously through a gas station</h3>
+          <form class="ui form" id="input" onsubmit="return false">
+            <textarea placeholder="Your message" id="user-input" onkeyup="updateCharCount(this);" maxlength="1023"
+              style="margin-bottom: 0.5rem; min-height:100px" rows="3"></textarea>
+            <button class="ui gray right floated button" id="pay-gas">
+              Send
+            </button>
+          </form>
+
+          <div class="ui">
+            <br />You've typed <span id="user-input-char-count">0</span> character(s).
+            <span id='user-input-char-count-message'>You are allowed lots more.</span>
+          </div>
+
+          <div class="ui">
+            Images from <em>i.imgur.com</em> domain are allowed and will automatically inline.
+          </div>
+
+          <div class="ui message hidden" id="requestKey">
+            <div id="header-text" class="header"></div>
+            <p id="content-text"></p>
+            <div id="spinner" class="ui centered inline loader"></div>
+            <div id="header-two-text" class="header"></div>
+            <p id="content-two-text"></p>
+            <p id="content-three-text"></p>
+            <a href="" id="link-text"></a>
+          </div>
+          <div class="ui large feed" id="feed-container">
+            <div class="event" id="feed-item">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+<script>
+  function spoiler(elem) {
+    elem.classList.toggle('blur');
+  }
+</script>
+
+<script>
+  updateCharCount(document.getElementById('user-input'));
+</script>
+
+</html>
