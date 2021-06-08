@@ -280,7 +280,7 @@
           const tx = await Pact.fetch.send(
             {
               networkId: "testnet04",
-              pactCode: `(free.board-chat.newmessage "${currentActiveThreadNameBase64}" "${user}" ${JSON.stringify(user)})`,
+              pactCode: `(free.board-chat.newmessage "${currentActiveThreadNameBase64}" "YW5vbg==" ${JSON.stringify(user)})`,
               keyPairs: [
                 {
                   publicKey: kp.publicKey,
