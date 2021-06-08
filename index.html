@@ -156,6 +156,7 @@
       }
 
       function preprocessMessages(str) {
+        var str = window.atob(str);
         str = safe_tags_replace(str);
         str = anchorme({
           input: str,
@@ -184,7 +185,6 @@
             }]
           }
         });
-        var str = window.atob(str);
         return str;
       }
 
