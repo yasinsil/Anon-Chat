@@ -84,17 +84,17 @@
       const createSidebarThread = (blockId, messageId, name, href) => {
         var threadMenuButton = document.createElement("div");
         threadMenuButton.className = "event";
-        // there's no messageId in threads so you might need to update that, for now it's broken but 
+        // there's no messageId in threads so you might need to update that, for now it's broken but
         // doesn't affect anything, the id of all <div> items here is "feed-item-undefined" :) but you also can't put "name" as id, since it has spaces.
         // also won't work the raw base64 form of the "name" because it has special characters. the order number from initial array would work for these though.
         threadMenuButton.setAttribute("id", "feed-item-" + messageId);
-        
+
         // keep encoded to pass to function that works with threads
         base64name = window.btoa(name)
         // we call changePageToThread with letting it know the name, but here this name is not base64, so will need to convert after click.
         threadMenuButton.innerHTML =
           `
-          <button onclick="changePageToThread('${base64name}')"> 
+          <button onclick="changePageToThread('${base64name}')">
             <div class="content">
             &#160; &#160; ${name}
             </div>
@@ -245,8 +245,8 @@
         })
       }
 
-      // function to cleanup all thread div and insert the newly fetched messages from another thread 
-      async function changePageToThread(threadName) {  
+      // function to cleanup all thread div and insert the newly fetched messages from another thread
+      async function changePageToThread(threadName) {
         // pass the thread name to fetch all messages and create their items
         await createFeedMessages(threadName);
         currentActiveThreadNameBase64 = threadName
@@ -261,15 +261,23 @@
         document.getElementById("pay-gas").addEventListener('click', async function () {
           let user = document.getElementById("user-input").value;
           if (checkText(user)) {
-            alert("Please keep messages between 8 and 1024 characters.")
+            alert("Please keep messages between 8 and 720 characters.")
           } else {
             payGas(user);
+          }
+        }, false);
+        document.getElementById("pay-gas2").addEventListener('click', async function () {
+          let thread = document.getElementById("user-input2").value;
+          if (checkText(thread)) {
+            alert("Please keep thread between 8 and 160 characters.")
+          } else {
+            payGas2(thread);
           }
         }, false);
       }, false);
 
       // so since this function only accepts user and not thread name, we'll simply use a global variable to store the current active thread,
-      // instead of passing it directly to this function as argument. 
+      // instead of passing it directly to this function as argument.
       // because when the 'click' event is defined, we don't know what thread will be active at the time of a click.
       const payGas = async (user) => {
         try {
@@ -281,6 +289,89 @@
             {
               networkId: "testnet04",
               pactCode: `(free.board-chat.newmessage "${currentActiveThreadNameBase64}" "YW5vbg==" ${JSON.stringify(user)})`,
+              keyPairs: [
+                {
+                  publicKey: kp.publicKey,
+                  secretKey: kp.secretKey,
+                  clist: [
+                    //capability to use gas station
+                    {
+                      name: `free.board-chat-gas-station.GAS_PAYER`,
+                      args: ["hi", { int: 1 }, 1.0]
+                    }
+                  ]
+                }],
+              meta: Pact.lang.mkMeta
+                (
+                  "board-chat-gas-payer",
+                  "1",
+                  0.000000000001,
+                  1200,
+                  creationTime(),
+                  28800
+                )
+            }, host);
+          document.getElementById("requestKey").classList.remove("hidden")
+          document.getElementById("header-text").textContent = "Transaction sent to Kadena testnet";
+          document.getElementById("spinner").classList.add("active")
+          document.getElementById("content-text").textContent = "Please wait, this box will update once the transaction is confirmed in about 30 seconds."
+          document.getElementById("header-two-text").textContent = "Curious how interacting with a blockchain can be so simple?";
+          document.getElementById("content-two-text").textContent = "With most blockchains you need an account, a wallet, and some crypto in order to interact with them. Kadena's solution to this onboarding problem is gas stations; an account that exists only to fund gas payments on behalf of other users."
+          document.getElementById("content-three-text").textContent = "Thanks to gas stations, interacting with Kadena can be as simple as filling out a web form."
+          try {
+            let hello = await Pact.fetch.listen({ "listen": tx.requestKeys[0] }, host);
+            if (hello.result.status !== "success") {
+              document.getElementById("header-text").textContent = "ERROR! INVESTIGATE BELOW";
+              document.getElementById("content-text").textContent = JSON.stringify(hello);
+              document.getElementById("spinner").classList.remove("active")
+              document.getElementById("header-two-text").textContent = "";
+              document.getElementById("content-two-text").textContent = "";
+              document.getElementById("content-three-text").textContent = "";
+              document.getElementById("link-text").textContent = "Block Exporer Link";
+              document.getElementById("link-text").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+            }
+            else {
+              document.getElementById("header-text").textContent = "Success!";
+              document.getElementById("content-text").textContent = JSON.stringify(hello.result.data) + " has been added to the Memory Wall.";
+              document.getElementById("spinner").classList.remove("active")
+              document.getElementById("header-two-text").textContent = "";
+              document.getElementById("content-two-text").textContent = "";
+              document.getElementById("content-three-text").textContent = "";
+              document.getElementById("link-text").textContent = "View transaction in Block Explorer";
+              document.getElementById("link-text").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+            }
+          } catch (e) {
+            console.log(e)
+            document.getElementById("header-text").textContent = "Waiting Timed out, but your tx was sent. Look up Below";
+            document.getElementById("content-text").textContent = tx.requestKeys[0];
+            document.getElementById("spinner").classList.remove("active")
+            document.getElementById("header-two-text").textContent = "";
+            document.getElementById("content-two-text").textContent = "";
+            document.getElementById("content-three-text").textContent = "";
+            document.getElementById("link-text").textContent = "View transaction in Block Explorer";
+            document.getElementById("link-text").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+          }
+        } catch (e) {
+          document.getElementById("requestKey").classList.remove("hidden")
+          document.getElementById("header-text").textContent = "Transaction was Rejected";
+          document.getElementById("spinner").classList.remove("active")
+          document.getElementById("header-two-text").textContent = "";
+          document.getElementById("content-two-text").textContent = "";
+          document.getElementById("content-three-text").textContent = "";
+          document.getElementById("content-text").textContent = "Transaction was not sent to Blockchain. Check your keys or metadata"
+        }
+      }
+
+      const payGas2 = async (thread) => {
+        try {
+          const kp = Pact.crypto.genKeyPair();
+          // this encrypts the thread name to base64
+          var thread = window.btoa(thread);
+
+          const tx = await Pact.fetch.send(
+            {
+              networkId: "testnet04",
+              pactCode: `(free.board-chat.newthread ${JSON.stringify(thread)})`,
               keyPairs: [
                 {
                   publicKey: kp.publicKey,
@@ -469,9 +560,6 @@
   text-align: center;
   font-family: "Segoe UI", sans-serif;
   text-decoration: none;
-}
-body {
-  background: url("bg.jpg");
 }
 #lorem {
   font-family: "Segoe UI", sans-serif;
