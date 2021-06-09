@@ -394,54 +394,54 @@
                   28800
                 )
             }, host);
-          document.getElementById("requestKey").classList.remove("hidden")
-          document.getElementById("header-text").textContent = "Transaction sent to Kadena testnet";
-          document.getElementById("spinner").classList.add("active")
-          document.getElementById("content-text").textContent = "Please wait, this box will update once the transaction is confirmed in about 30 seconds."
-          document.getElementById("header-two-text").textContent = "Curious how interacting with a blockchain can be so simple?";
-          document.getElementById("content-two-text").textContent = "With most blockchains you need an account, a wallet, and some crypto in order to interact with them. Kadena's solution to this onboarding problem is gas stations; an account that exists only to fund gas payments on behalf of other users."
-          document.getElementById("content-three-text").textContent = "Thanks to gas stations, interacting with Kadena can be as simple as filling out a web form."
+          document.getElementById("requestKey2").classList.remove("hidden")
+          document.getElementById("header-text2").textContent = "Transaction sent to Kadena testnet";
+          document.getElementById("spinner2").classList.add("active")
+          document.getElementById("content-text2").textContent = "Please wait, this box will update once the transaction is confirmed in about 30 seconds."
+          document.getElementById("header-two-text2").textContent = "Curious how interacting with a blockchain can be so simple?";
+          document.getElementById("content-two-text2").textContent = "With most blockchains you need an account, a wallet, and some crypto in order to interact with them. Kadena's solution to this onboarding problem is gas stations; an account that exists only to fund gas payments on behalf of other users."
+          document.getElementById("content-three-text2").textContent = "Thanks to gas stations, interacting with Kadena can be as simple as filling out a web form."
           try {
             let hello = await Pact.fetch.listen({ "listen": tx.requestKeys[0] }, host);
             if (hello.result.status !== "success") {
-              document.getElementById("header-text").textContent = "ERROR! INVESTIGATE BELOW";
-              document.getElementById("content-text").textContent = JSON.stringify(hello);
-              document.getElementById("spinner").classList.remove("active")
-              document.getElementById("header-two-text").textContent = "";
-              document.getElementById("content-two-text").textContent = "";
-              document.getElementById("content-three-text").textContent = "";
-              document.getElementById("link-text").textContent = "Block Exporer Link";
-              document.getElementById("link-text").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+              document.getElementById("header-text2").textContent = "ERROR! INVESTIGATE BELOW";
+              document.getElementById("content-text2").textContent = JSON.stringify(hello);
+              document.getElementById("spinner2").classList.remove("active")
+              document.getElementById("header-two-text2").textContent = "";
+              document.getElementById("content-two-text2").textContent = "";
+              document.getElementById("content-three-text2").textContent = "";
+              document.getElementById("link-text2").textContent = "Block Exporer Link";
+              document.getElementById("link-text2").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
             }
             else {
-              document.getElementById("header-text").textContent = "Success!";
-              document.getElementById("content-text").textContent = JSON.stringify(hello.result.data) + " has been added to the Memory Wall.";
-              document.getElementById("spinner").classList.remove("active")
-              document.getElementById("header-two-text").textContent = "";
-              document.getElementById("content-two-text").textContent = "";
-              document.getElementById("content-three-text").textContent = "";
-              document.getElementById("link-text").textContent = "View transaction in Block Explorer";
-              document.getElementById("link-text").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+              document.getElementById("header-text2").textContent = "Success!";
+              document.getElementById("content-text2").textContent = JSON.stringify(hello.result.data) + " has been added to the Memory Wall.";
+              document.getElementById("spinner2").classList.remove("active")
+              document.getElementById("header-two-text2").textContent = "";
+              document.getElementById("content-two-text2").textContent = "";
+              document.getElementById("content-three-text2").textContent = "";
+              document.getElementById("link-text2").textContent = "View transaction in Block Explorer";
+              document.getElementById("link-text2").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
             }
           } catch (e) {
             console.log(e)
-            document.getElementById("header-text").textContent = "Waiting Timed out, but your tx was sent. Look up Below";
-            document.getElementById("content-text").textContent = tx.requestKeys[0];
-            document.getElementById("spinner").classList.remove("active")
-            document.getElementById("header-two-text").textContent = "";
-            document.getElementById("content-two-text").textContent = "";
-            document.getElementById("content-three-text").textContent = "";
-            document.getElementById("link-text").textContent = "View transaction in Block Explorer";
-            document.getElementById("link-text").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+            document.getElementById("header-text2").textContent = "Waiting Timed out, but your tx was sent. Look up Below";
+            document.getElementById("content-text2").textContent = tx.requestKeys[0];
+            document.getElementById("spinner2").classList.remove("active")
+            document.getElementById("header-two-text2").textContent = "";
+            document.getElementById("content-two-text2").textContent = "";
+            document.getElementById("content-three-text2").textContent = "";
+            document.getElementById("link-text2").textContent = "View transaction in Block Explorer";
+            document.getElementById("link-text2").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
           }
         } catch (e) {
-          document.getElementById("requestKey").classList.remove("hidden")
-          document.getElementById("header-text").textContent = "Transaction was Rejected";
-          document.getElementById("spinner").classList.remove("active")
-          document.getElementById("header-two-text").textContent = "";
-          document.getElementById("content-two-text").textContent = "";
-          document.getElementById("content-three-text").textContent = "";
-          document.getElementById("content-text").textContent = "Transaction was not sent to Blockchain. Check your keys or metadata"
+          document.getElementById("requestKey2").classList.remove("hidden")
+          document.getElementById("header-text2").textContent = "Transaction was Rejected";
+          document.getElementById("spinner2").classList.remove("active")
+          document.getElementById("header-two-text2").textContent = "";
+          document.getElementById("content-two-text2").textContent = "";
+          document.getElementById("content-three-text2").textContent = "";
+          document.getElementById("content-text2").textContent = "Transaction was not sent to Blockchain. Check your keys or metadata"
         }
       }
 
@@ -692,6 +692,15 @@ img.inline-image.spoiler {
             <button class="ui gray right floated button" id="pay-gas2">
               Create
             </button>
+          </div>
+          <div class="ui message hidden" id="requestKey2">
+            <div id="header-text2" class="header"></div>
+            <p id="content-text2"></p>
+            <div id="spinner2" class="ui centered inline loader"></div>
+            <div id="header-two-text2" class="header"></div>
+            <p id="content-two-text2"></p>
+            <p id="content-three-text2"></p>
+            <a href="" id="link-text2"></a>
           </div>
           <div class="threadsList" id="sidebar-threads-container">
           </div>
