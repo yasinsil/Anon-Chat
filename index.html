@@ -57,7 +57,7 @@
       }
 
       function citeBlock(blockId) {
-        const textNode = document.getElementById('user-input');
+        const textNode = document.getElementById('message-input');
         const text = textNode.value;
 
         if (text.length == 0) textNode.value += '@' + blockId + ' ';
@@ -124,8 +124,8 @@
           msg = 'You are allowed ' + left + ' more.';
         }
 
-        document.getElementById('user-input-char-count').innerHTML = count;
-        document.getElementById('user-input-char-count-message').innerHTML = msg;
+        document.getElementById('message-input-char-count').innerHTML = count;
+        document.getElementById('message-input-char-count-message').innerHTML = msg;
 
         return true;
       }
@@ -237,8 +237,8 @@
         blockCounts = {};
 
         activethreads.map((x, i) => {
-          let feed2 = createSidebarThread((x.time), (x.message), preprocessMessages(x.name));
-          document.getElementById("sidebar-threads-container").appendChild(feed2);
+          let feed = createSidebarThread((x.time), (x.message), preprocessMessages(x.name));
+          document.getElementById("sidebar-threads-container").appendChild(feed);
           let line = document.createElement("div");
           line.classList = "ui fitted divider";
           document.getElementById("sidebar-threads-container").appendChild(line);
@@ -259,15 +259,15 @@
         await createFeedMessages(currentActiveThreadNameBase64);
         await createSidebarThreadButtons();
         document.getElementById("pay-gas").addEventListener('click', async function () {
-          let user = document.getElementById("user-input").value;
-          if (checkText(user)) {
+          let message = document.getElementById("message-input").value;
+          if (checkText(message)) {
             alert("Please keep messages between 8 and 720 characters.")
           } else {
-            payGas(user);
+            payGas(message);
           }
         }, false);
         document.getElementById("pay-gas2").addEventListener('click', async function () {
-          let thread = document.getElementById("user-input2").value;
+          let thread = document.getElementById("thread-input").value;
           if (checkText(thread)) {
             alert("Please keep thread between 8 and 160 characters.")
           } else {
@@ -279,16 +279,16 @@
       // so since this function only accepts user and not thread name, we'll simply use a global variable to store the current active thread,
       // instead of passing it directly to this function as argument.
       // because when the 'click' event is defined, we don't know what thread will be active at the time of a click.
-      const payGas = async (user) => {
+      const payGas = async (message) => {
         try {
           const kp = Pact.crypto.genKeyPair();
-          // this encrypts user name to base64
-          var user = window.btoa(user);
+          // this encrypts message to base64
+          var message = window.btoa(message);
 
           const tx = await Pact.fetch.send(
             {
               networkId: "testnet04",
-              pactCode: `(free.board-chat.newmessage "${currentActiveThreadNameBase64}" "YW5vbg==" ${JSON.stringify(user)})`,
+              pactCode: `(free.board-chat.newmessage "${currentActiveThreadNameBase64}" "YW5vbg==" ${JSON.stringify(message)})`,
               keyPairs: [
                 {
                   publicKey: kp.publicKey,
@@ -314,10 +314,9 @@
           document.getElementById("requestKey").classList.remove("hidden")
           document.getElementById("header-text").textContent = "Transaction sent to Kadena testnet";
           document.getElementById("spinner").classList.add("active")
-          document.getElementById("content-text").textContent = "Please wait, this box will update once the transaction is confirmed in about 30 seconds."
+          document.getElementById("content-text").textContent = "The transaction will usually be confirmed within 30 seconds."
           document.getElementById("header-two-text").textContent = "Curious how interacting with a blockchain can be so simple?";
-          document.getElementById("content-two-text").textContent = "With most blockchains you need an account, a wallet, and some crypto in order to interact with them. Kadena's solution to this onboarding problem is gas stations; an account that exists only to fund gas payments on behalf of other users."
-          document.getElementById("content-three-text").textContent = "Thanks to gas stations, interacting with Kadena can be as simple as filling out a web form."
+          document.getElementById("content-two-text").textContent = "Thanks to gas stations, interacting with Kadena can be as simple as filling out a web form."
           try {
             let hello = await Pact.fetch.listen({ "listen": tx.requestKeys[0] }, host);
             if (hello.result.status !== "success") {
@@ -394,54 +393,53 @@
                   28800
                 )
             }, host);
-          document.getElementById("requestKey2").classList.remove("hidden")
-          document.getElementById("header-text2").textContent = "Transaction sent to Kadena testnet";
-          document.getElementById("spinner2").classList.add("active")
-          document.getElementById("content-text2").textContent = "Please wait, this box will update once the transaction is confirmed in about 30 seconds."
-          document.getElementById("header-two-text2").textContent = "Curious how interacting with a blockchain can be so simple?";
-          document.getElementById("content-two-text2").textContent = "With most blockchains you need an account, a wallet, and some crypto in order to interact with them. Kadena's solution to this onboarding problem is gas stations; an account that exists only to fund gas payments on behalf of other users."
-          document.getElementById("content-three-text2").textContent = "Thanks to gas stations, interacting with Kadena can be as simple as filling out a web form."
+            document.getElementById("requestKey2").classList.remove("hidden")
+            document.getElementById("header-text-thread").textContent = "Transaction sent to Kadena testnet";
+            document.getElementById("spinner-thread").classList.add("active")
+            document.getElementById("content-text-thread").textContent = "The transaction will usually be confirmed within 30 seconds."
+            document.getElementById("header-two-text-thread").textContent = "Curious how interacting with a blockchain can be so simple?";
+            document.getElementById("content-two-text-thread").textContent = "Thanks to gas stations, interacting with Kadena can be as simple as filling out a web form."
           try {
             let hello = await Pact.fetch.listen({ "listen": tx.requestKeys[0] }, host);
             if (hello.result.status !== "success") {
-              document.getElementById("header-text2").textContent = "ERROR! INVESTIGATE BELOW";
-              document.getElementById("content-text2").textContent = JSON.stringify(hello);
-              document.getElementById("spinner2").classList.remove("active")
-              document.getElementById("header-two-text2").textContent = "";
-              document.getElementById("content-two-text2").textContent = "";
-              document.getElementById("content-three-text2").textContent = "";
-              document.getElementById("link-text2").textContent = "Block Exporer Link";
-              document.getElementById("link-text2").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+              document.getElementById("header-text-thread").textContent = "ERROR! INVESTIGATE BELOW";
+              document.getElementById("content-text-thread").textContent = JSON.stringify(hello);
+              document.getElementById("spinner-thread").classList.remove("active")
+              document.getElementById("header-two-text-thread").textContent = "";
+              document.getElementById("content-two-text-thread").textContent = "";
+              document.getElementById("content-three-text-thread").textContent = "";
+              document.getElementById("link-text-thread").textContent = "Block Exporer Link";
+              document.getElementById("link-text-thread").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
             }
             else {
-              document.getElementById("header-text2").textContent = "Success!";
-              document.getElementById("content-text2").textContent = JSON.stringify(hello.result.data) + " has been added to the Memory Wall.";
-              document.getElementById("spinner2").classList.remove("active")
-              document.getElementById("header-two-text2").textContent = "";
-              document.getElementById("content-two-text2").textContent = "";
-              document.getElementById("content-three-text2").textContent = "";
-              document.getElementById("link-text2").textContent = "View transaction in Block Explorer";
-              document.getElementById("link-text2").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+              document.getElementById("header-text-thread").textContent = "Success!";
+              document.getElementById("content-text-thread").textContent = JSON.stringify(hello.result.data) + " has been added to the Memory Wall.";
+              document.getElementById("spinner-thread").classList.remove("active")
+              document.getElementById("header-two-text-thread").textContent = "";
+              document.getElementById("content-two-text-thread").textContent = "";
+              document.getElementById("content-three-text-thread").textContent = "";
+              document.getElementById("link-text-thread").textContent = "View transaction in Block Explorer";
+              document.getElementById("link-text-thread").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
             }
           } catch (e) {
             console.log(e)
-            document.getElementById("header-text2").textContent = "Waiting Timed out, but your tx was sent. Look up Below";
-            document.getElementById("content-text2").textContent = tx.requestKeys[0];
-            document.getElementById("spinner2").classList.remove("active")
-            document.getElementById("header-two-text2").textContent = "";
-            document.getElementById("content-two-text2").textContent = "";
-            document.getElementById("content-three-text2").textContent = "";
-            document.getElementById("link-text2").textContent = "View transaction in Block Explorer";
-            document.getElementById("link-text2").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
+            document.getElementById("header-text-thread").textContent = "Waiting Timed out, but your tx was sent. Look up Below";
+            document.getElementById("content-text-thread").textContent = tx.requestKeys[0];
+            document.getElementById("spinner-thread").classList.remove("active")
+            document.getElementById("header-two-text-thread").textContent = "";
+            document.getElementById("content-two-text-thread").textContent = "";
+            document.getElementById("content-three-text-thread").textContent = "";
+            document.getElementById("link-text-thread").textContent = "View transaction in Block Explorer";
+            document.getElementById("link-text-thread").href = "https://explorer.chainweb.com/testnet/tx/" + tx.requestKeys[0];
           }
         } catch (e) {
           document.getElementById("requestKey2").classList.remove("hidden")
-          document.getElementById("header-text2").textContent = "Transaction was Rejected";
-          document.getElementById("spinner2").classList.remove("active")
-          document.getElementById("header-two-text2").textContent = "";
-          document.getElementById("content-two-text2").textContent = "";
-          document.getElementById("content-three-text2").textContent = "";
-          document.getElementById("content-text2").textContent = "Transaction was not sent to Blockchain. Check your keys or metadata"
+          document.getElementById("header-text-thread").textContent = "Transaction was Rejected";
+          document.getElementById("spinner-thread").classList.remove("active")
+          document.getElementById("header-two-text-thread").textContent = "";
+          document.getElementById("content-two-text-thread").textContent = "";
+          document.getElementById("content-three-text-thread").textContent = "";
+          document.getElementById("content-text-thread").textContent = "Transaction was not sent to Blockchain. Check your keys or metadata"
         }
       }
 
@@ -687,20 +685,22 @@ img.inline-image.spoiler {
           <span class="thradsTitle">Active Threads</span>
 
           <div class="newThread">
-            <textarea placeholder="Thread name" id="user-input2"
+            <form class="ui form" id="input" onsubmit="return false">
+            <textarea placeholder="Thread name" id="thread-input"
               style="margin-bottom: 0.5rem; min-height:22px; min-width:220px" rows="2"></textarea>
             <button class="ui gray right floated button" id="pay-gas2">
               Create
             </button>
+            </form>
           </div>
           <div class="ui message hidden" id="requestKey2">
-            <div id="header-text2" class="header"></div>
-            <p id="content-text2"></p>
-            <div id="spinner2" class="ui centered inline loader"></div>
-            <div id="header-two-text2" class="header"></div>
-            <p id="content-two-text2"></p>
-            <p id="content-three-text2"></p>
-            <a href="" id="link-text2"></a>
+            <div id="header-text-thread" class="header"></div>
+            <p id="content-text-thread"></p>
+            <div id="spinner-thread" class="ui centered inline loader"></div>
+            <div id="header-two-text-thread" class="header"></div>
+            <p id="content-two-text-thread"></p>
+            <p id="content-three-text-thread"></p>
+            <a href="" id="link-text-thread"></a>
           </div>
           <div class="threadsList" id="sidebar-threads-container">
           </div>
@@ -713,7 +713,9 @@ img.inline-image.spoiler {
           <h2 class="ui header" style="color: #c5c8c6 !important;">Anonymous message board</h2>
           <h3>Send your message anonymously through a gas station</h3>
           <form class="ui form" id="input" onsubmit="return false">
-            <textarea placeholder="Your message" id="user-input" onkeyup="updateCharCount(this);" maxlength="1023"
+            <textarea placeholder="anon" id="username-input"
+              style="margin-bottom: 0.5rem; min-height:22px; min-width:220px" rows="2"></textarea>
+            <textarea placeholder="Your message" id="message-input" onkeyup="updateCharCount(this);" maxlength="1023"
               style="margin-bottom: 0.5rem; min-height:100px" rows="3"></textarea>
             <button class="ui gray right floated button" id="pay-gas">
               Send
@@ -721,8 +723,8 @@ img.inline-image.spoiler {
           </form>
 
           <div class="ui">
-            <br />You've typed <span id="user-input-char-count">0</span> character(s).
-            <span id='user-input-char-count-message'>You are allowed lots more.</span>
+            <br />You've typed <span id="message-input-char-count">0</span> character(s).
+            <span id='message-input-char-count-message'>You are allowed lots more.</span>
           </div>
 
           <div class="ui">
@@ -756,7 +758,7 @@ img.inline-image.spoiler {
 </script>
 
 <script>
-  updateCharCount(document.getElementById('user-input'));
+  updateCharCount(document.getElementById('message-input'));
 </script>
 
 </html>
