@@ -20,6 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/pact-lang-api@4.1.2/pact-lang-api-global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/anchorme@2.1.2/dist/browser/anchorme.min.js"></script>
 
+
     <script>
 
       const host = `https://api.testnet.chainweb.com/chainweb/0.0/testnet04/chain/1/pact`;
@@ -446,23 +447,23 @@
     </script>
 
 <style>
-  body {
+body {
   line-height: inherit !important;
   background-color: #1d1f21 !important;
   color: #c5c8c6;
 }
-.ui.segment{
-    background-color: #1d1f21 !important;
-    color: #c5c8c6;
+.ui.segment {
+  background-color: #1d1f21 !important;
+  color: #c5c8c6;
 }
 .ui.form textarea {
-    background-color: rgb(46, 46, 46) !important;
-    color: #c5c8c6 !important;
+  background-color: rgb(46, 46, 46) !important;
+  color: #c5c8c6 !important;
 }
 ::selection {
-    color: #000000;
-    background: #ffffff;
-  }
+  color: #000000;
+  background: #ffffff;
+}
 
 .parent {
   display: grid;
@@ -472,6 +473,7 @@
 .sidebar {
   border-right: 1px solid #2e2e2e;
   background: #111111;
+  padding-top: 1em;
 }
 
 .threads {
@@ -480,7 +482,7 @@
 }
 
 .newThread {
-  padding: 0.5rem;
+  padding: 0.5rem 0.5rem 1.7rem 0.5rem;
   user-select: none;
 }
 .newThreadButton {
@@ -499,14 +501,12 @@
 }
 
 .thradsTitle {
-  font-size: 2rem;
-  padding: 1rem;
+  font-size: 1.4rem;
+  padding: 0rem 1rem 1rem 1rem;
 }
 
 .threadsList {
   display: grid;
-  padding: 1rem 0rem;
-  gap: 1rem;
   text-align: initial;
 }
 
@@ -524,6 +524,46 @@
 
 .threadsList > span:active {
   background-color: rgb(70, 70, 70);
+}
+
+button {
+  width: 100%;
+}
+
+.event > button {
+  background: rgb(27, 28, 29);
+  color: inherit;
+  border: none;
+  padding: 1rem;
+  text-align: start;
+  cursor: pointer;
+}
+.event > button:hover {
+    background: rgb(46, 46, 46);
+}
+.event > button:active {
+    background: rgb(71, 71, 71);
+}
+.event > button:visited {
+    background: rgb(255, 63, 63) !important;
+}
+
+.black {
+    background-color: #525252 !important;
+}
+.black:hover {
+    background-color: #6e6e6e !important;
+}
+.black:active {
+    background-color: #8a8a8a !important;
+}
+
+#thread-input,
+#username-input {
+  margin-bottom: 0.5rem;
+  height: 3rem;
+  min-width: 220px;
+  resize: none;
 }
 
 #mask {
@@ -654,23 +694,22 @@ img.inline-image.spoiler {
   overflow: hidden;
 }
 
-
-
 ::-webkit-scrollbar {
-    width: 1rem;
+  width: 1rem;
 }
 
 ::-webkit-scrollbar-track {
-	background-color: #2e2e2e;
+  background-color: #2e2e2e;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #555;
+  background: #555;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #707070;
+  background: #707070;
 }
+
 </style>
 
 </head>
@@ -686,9 +725,8 @@ img.inline-image.spoiler {
 
           <div class="newThread">
             <form class="ui form" id="input" onsubmit="return false">
-            <textarea placeholder="Thread name" id="thread-input"
-              style="margin-bottom: 0.5rem; min-height:22px; min-width:220px" rows="2"></textarea>
-            <button class="ui gray right floated button" id="pay-gas2">
+            <textarea placeholder="Thread name" id="thread-input" rows="2"></textarea>
+            <button class="ui black right floated button" id="pay-gas2">
               Create
             </button>
             </form>
@@ -713,15 +751,14 @@ img.inline-image.spoiler {
           <h2 class="ui header" style="color: #c5c8c6 !important;">Anonymous message board</h2>
           <h3>Send your message anonymously through a gas station</h3>
           <form class="ui form" id="input" onsubmit="return false">
-            <textarea placeholder="anon" id="username-input"
-              style="margin-bottom: 0.5rem; min-height:22px; min-width:220px" rows="2"></textarea>
+            <textarea placeholder="anon" id="username-input" rows="2"></textarea>
             <textarea placeholder="Your message" id="message-input" onkeyup="updateCharCount(this);" maxlength="1023"
               style="margin-bottom: 0.5rem; min-height:100px" rows="3"></textarea>
-            <button class="ui gray right floated button" id="pay-gas">
+            <button class="ui black right floated button" id="pay-gas">
               Send
             </button>
           </form>
-
+          <br>
           <div class="ui">
             <br />You've typed <span id="message-input-char-count">0</span> character(s).
             <span id='message-input-char-count-message'>You are allowed lots more.</span>
